@@ -1,0 +1,59 @@
+@model PickMeUp.Core.Services.Email.Templates.WelcomeEmailViewModel
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #28a745; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .content h2 { color: #28a745; margin-top: 0; }
+        .features { background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
+        .features ul { list-style: none; padding: 0; }
+        .features li { padding: 10px 0; border-bottom: 1px solid #eee; }
+        .features li:before { content: "✓ "; color: #28a745; font-weight: bold; margin-right: 10px; }
+        .features li:last-child { border-bottom: none; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; margin-top: 20px; }
+        .highlight { background-color: #d4edda; padding: 15px; border-radius: 5px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Benvenuto!</h1>
+        </div>
+        <div class="content">
+            <h2>Ciao @Model.FirstName!</h2>
+            <p>Siamo felici di darti il benvenuto su <strong>PickMeUp</strong>!</p>
+            
+            <div class="highlight">
+                ✅ Il tuo account è stato attivato con successo!
+            </div>
+            
+            <p>Ora puoi iniziare a utilizzare la nostra piattaforma per condividere i tuoi viaggi o trovare un passaggio comodo e conveniente.</p>
+            
+            <div class="features">
+                <h3>🚀 Cosa puoi fare:</h3>
+                <ul>
+                    <li><strong>Pubblicare viaggi</strong> - Condividi i tuoi spostamenti e offri passaggi</li>
+                    <li><strong>Cercare viaggi</strong> - Trova passaggi verso la tua destinazione</li>
+                    <li><strong>Richiedere pickup</strong> - Indica dove vuoi essere prelevato lungo il percorso</li>
+                    <li><strong>Gestire richieste</strong> - Accetta o rifiuta richieste di passaggio</li>
+                    <li><strong>Risparmiare</strong> - Condividi i costi e contribuisci all'ambiente</li>
+                </ul>
+            </div>
+            
+            <p>Inizia subito ad esplorare i viaggi disponibili o pubblica il tuo primo viaggio!</p>
+            
+            <p style="margin-top: 30px;">
+                Buon viaggio con PickMeUp! 🚗💨
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year PickMeUp. Tutti i diritti riservati.</p>
+            <p style="color: #999; font-size: 11px;">Questa è una email automatica, si prega di non rispondere.</p>
+        </div>
+    </div>
+</body>
+</html>

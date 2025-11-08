@@ -1,0 +1,61 @@
+@model PickMeUp.Core.Services.Email.Templates.PickUpRequestCancelledViewModel
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #ffc107; color: #333; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .content h2 { color: #ffc107; margin-top: 0; }
+        .travel-info { background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ffc107; }
+        .travel-info p { margin: 10px 0; }
+        .travel-info strong { color: #ffc107; }
+        .highlight { background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ffc107; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; margin-top: 20px; }
+        .icon { font-size: 20px; margin-right: 5px; }
+        .info-box { background-color: #d1ecf1; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #0c5460; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚠️ Richiesta Annullata</h1>
+        </div>
+        <div class="content">
+            <h2>Ciao @Model.TravelOwnerFirstName!</h2>
+            <p>Ti informiamo che <strong>@Model.RequesterFirstName @Model.RequesterLastName</strong> ha annullato la sua richiesta di passaggio per il tuo viaggio.</p>
+            
+            <div class="highlight">
+                💺 Ora hai <strong>un posto disponibile</strong> in più nel tuo viaggio!
+            </div>
+            
+            <div class="travel-info">
+                <h3 style="margin-top: 0; color: #ffc107;">📍 Dettagli del Viaggio</h3>
+                <p><span class="icon">🚀</span><strong>Partenza:</strong> @Model.DepartureAddress</p>
+                <p><span class="icon">🎯</span><strong>Destinazione:</strong> @Model.DestinationAddress</p>
+                <p><span class="icon">📅</span><strong>Data e Ora:</strong> @Model.DepartureDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+            </div>
+            
+            <div class="info-box">
+                <h3 style="margin-top: 0;">💡 Cosa fare ora?</h3>
+                <p style="margin: 10px 0;">
+                    Il posto liberato è automaticamente disponibile per nuove richieste. 
+                    Altri utenti potranno richiedere un passaggio per questo viaggio.
+                </p>
+            </div>
+            
+            <p>Puoi visualizzare lo stato aggiornato del tuo viaggio accedendo alla piattaforma PickMeUp.</p>
+            
+            <p style="margin-top: 30px;">
+                Grazie per utilizzare PickMeUp! 🚗💨
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year PickMeUp. Tutti i diritti riservati.</p>
+            <p style="color: #999; font-size: 11px;">Questa è una email automatica, si prega di non rispondere.</p>
+        </div>
+    </div>
+</body>
+</html>

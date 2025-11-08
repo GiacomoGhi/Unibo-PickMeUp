@@ -1,0 +1,102 @@
+@using PickMeUp.Enums.UserPickUpRequest
+@model PickMeUp.Core.Services.Email.Templates.PickUpRequestStatusChangedViewModel
+@{
+    var isAccepted = Model.Status == UserPickUpRequestStatus.Accepted;
+    var headerColor = isAccepted ? "#28a745" : "#dc3545";
+    var headerTitle = isAccepted ? "✅ Richiesta Accettata!" : "❌ Richiesta Rifiutata";
+    var highlightBg = isAccepted ? "#d4edda" : "#f8d7da";
+    var highlightBorder = isAccepted ? "#28a745" : "#dc3545";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: @headerColor; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .content h2 { color: @headerColor; margin-top: 0; }
+        .travel-info { background-color: white; padding: 20px; border-radius: 5px; margin: 20px 0; border-left: 4px solid @headerColor; }
+        .travel-info p { margin: 10px 0; }
+        .travel-info strong { color: @headerColor; }
+        .highlight { background-color: @highlightBg; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid @highlightBorder; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; margin-top: 20px; }
+        .icon { font-size: 20px; margin-right: 5px; }
+        .next-steps { background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ffc107; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>@headerTitle</h1>
+        </div>
+        <div class="content">
+            <h2>Ciao @Model.RequesterFirstName!</h2>
+            
+            @if (isAccepted)
+            {
+                <p>Ottime notizie! <strong>@Model.TravelOwnerFirstName</strong> ha accettato la tua richiesta di passaggio!</p>
+                
+                <div class="highlight">
+                    🎉 La tua richiesta è stata <strong>accettata</strong>! Il tuo posto è prenotato.
+                </div>
+                
+                <div class="travel-info">
+                    <h3 style="margin-top: 0; color: #28a745;">📍 Dettagli del Viaggio</h3>
+                    <p><span class="icon">🚀</span><strong>Partenza:</strong> @Model.DepartureAddress</p>
+                    <p><span class="icon">🎯</span><strong>Destinazione:</strong> @Model.DestinationAddress</p>
+                    <p><span class="icon">📅</span><strong>Data e Ora:</strong> @Model.DepartureDateTime.ToString("dd/MM/yyyy HH:mm")</p>
+                </div>
+                
+                <div class="next-steps">
+                    <h3 style="margin-top: 0;">📝 Prossimi Passi:</h3>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Accedi a PickMeUp per vedere tutti i dettagli</li>
+                        <li>Controlla il punto di pickup concordato</li>
+                        <li>Sii puntuale all'orario di partenza</li>
+                        <li>Porta con te l'importo del rimborso spese concordato</li>
+                    </ol>
+                </div>
+                
+                <p style="margin-top: 20px;">
+                    <strong>Importante:</strong> Se hai bisogno di annullare, fallo il prima possibile per permettere ad altri di prendere il tuo posto.
+                </p>
+            }
+            else
+            {
+                <p>Ci dispiace, ma <strong>@Model.TravelOwnerFirstName</strong> non ha potuto accettare la tua richiesta di passaggio.</p>
+                
+                <div class="highlight">
+                    La tua richiesta è stata <strong>rifiutata</strong>.
+                </div>
+                
+                <div class="travel-info">
+                    <h3 style="margin-top: 0; color: #dc3545;">📍 Viaggio</h3>
+                    <p><span class="icon">🚀</span><strong>Partenza:</strong> @Model.DepartureAddress</p>
+                    <p><span class="icon">🎯</span><strong>Destinazione:</strong> @Model.DestinationAddress</p>
+                </div>
+                
+                <p>Non preoccuparti! Ci sono molti altri viaggi disponibili sulla piattaforma.</p>
+                
+                <div class="next-steps">
+                    <h3 style="margin-top: 0;">💡 Suggerimenti:</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li>Cerca altri viaggi simili sulla piattaforma</li>
+                        <li>Prova a richiedere passaggi con più anticipo</li>
+                        <li>Considera punti di pickup più comodi per i conducenti</li>
+                    </ul>
+                </div>
+            }
+            
+            <p style="margin-top: 30px;">
+                Buon viaggio con PickMeUp! 🚗💨
+            </p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year PickMeUp. Tutti i diritti riservati.</p>
+            <p style="color: #999; font-size: 11px;">Questa è una email automatica, si prega di non rispondere.</p>
+        </div>
+    </div>
+</body>
+</html>

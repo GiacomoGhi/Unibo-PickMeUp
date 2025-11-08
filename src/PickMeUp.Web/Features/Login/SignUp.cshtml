@@ -1,0 +1,109 @@
+@model PickMeUp.Web.Features.Login.SignUpViewModel
+@{
+    ViewData["Title"] = "Registrazione";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4">Registrazione</h2>
+            
+            <form method="post" role="form" autocomplete="off">
+                <input asp-for="ReturnUrl" type="hidden" />
+
+                <div class="form-group mb-3">
+                    <label asp-for="FirstName" class="onit-label-required"></label>
+                    <input asp-for="FirstName" class="form-control" type="text" />
+                    <span asp-validation-for="FirstName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="LastName" class="onit-label-required"></label>
+                    <input asp-for="LastName" class="form-control" type="text" />
+                    <span asp-validation-for="LastName" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="onit-label-required"></label>
+                    <input asp-for="Email" class="form-control" type="email" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="Password" class="onit-label-required"></label>
+                    <input asp-for="Password" class="form-control" type="password" />
+                    <span asp-validation-for="Password" class="text-danger"></span>
+                    <small class="form-text text-muted">La password deve contenere almeno 8 caratteri</small>
+                </div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="ConfirmPassword" class="onit-label-required"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" type="password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mb-4">
+                    <button type="submit" class="btn btn-primary w-100">Registrati</button>
+                </div>
+
+                <hr />
+
+                <div class="text-center mb-3">
+                    <p>Oppure registrati con:</p>
+                    <button type="button" id="googleSignUpBtn" class="btn btn-outline-danger w-100">
+                        <i class="fab fa-google me-2"></i>Registrati con Google
+                    </button>
+                </div>
+
+                <div class="text-center mt-3">
+                    <p>Hai già un account? <a asp-action="Login">Accedi qui</a></p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script>
+        // Google Sign-In callback
+        function handleGoogleSignIn(response) {
+            // Send the credential to the server
+            fetch('@Url.Action("GoogleSignUp", "Login")', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    credential: response.credential,
+                    returnUrl: '@Model.ReturnUrl'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert('Errore durante la registrazione con Google: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Errore durante la registrazione con Google');
+            });
+        }
+
+        // Initialize Google Sign-In when the page loads
+        window.onload = function() {
+            google.accounts.id.initialize({
+                client_id: '@ViewBag.GoogleClientId',
+                callback: handleGoogleSignIn
+            });
+
+            // Render the Google Sign-In button
+            document.getElementById('googleSignUpBtn').addEventListener('click', function() {
+                google.accounts.id.prompt();
+            });
+        };
+    </script>
+}

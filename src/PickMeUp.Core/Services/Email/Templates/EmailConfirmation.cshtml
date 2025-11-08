@@ -1,0 +1,50 @@
+@model PickMeUp.Core.Services.Email.Templates.EmailConfirmationViewModel
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+        .header { background-color: #007bff; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+        .header h1 { margin: 0; font-size: 28px; }
+        .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #e0e0e0; }
+        .content h2 { color: #007bff; margin-top: 0; }
+        .button { display: inline-block; padding: 12px 30px; background-color: #28a745; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; font-weight: bold; }
+        .button:hover { background-color: #218838; }
+        .link-container { background-color: #fff; padding: 15px; border: 1px solid #ddd; border-radius: 3px; word-break: break-all; margin: 15px 0; }
+        .footer { text-align: center; padding: 20px; font-size: 12px; color: #666; border-top: 1px solid #e0e0e0; margin-top: 20px; }
+        .note { background-color: #fff3cd; border-left: 4px solid #ffc107; padding: 10px; margin: 15px 0; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚗 PickMeUp</h1>
+        </div>
+        <div class="content">
+            <h2>Benvenuto su PickMeUp!</h2>
+            <p>Grazie per esserti registrato sulla nostra piattaforma di car sharing.</p>
+            <p>Per completare la registrazione e iniziare a condividere i tuoi viaggi, conferma il tuo indirizzo email cliccando sul pulsante qui sotto:</p>
+            
+            <div style="text-align: center;">
+                <a href="@Model.ConfirmationUrl" class="button">✉️ Conferma Email</a>
+            </div>
+            
+            <p>Se il pulsante non funziona, copia e incolla questo link nel tuo browser:</p>
+            <div class="link-container">
+                <a href="@Model.ConfirmationUrl">@Model.ConfirmationUrl</a>
+            </div>
+            
+            <div class="note">
+                <strong>⏰ Nota:</strong> Questo link scadrà tra @Model.ExpirationHours ore per motivi di sicurezza.
+            </div>
+            
+            <p>Se non hai richiesto questa registrazione, puoi ignorare questa email in tutta sicurezza.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; @DateTime.Now.Year PickMeUp. Tutti i diritti riservati.</p>
+            <p style="color: #999; font-size: 11px;">Questa è una email automatica, si prega di non rispondere.</p>
+        </div>
+    </div>
+</body>
+</html>

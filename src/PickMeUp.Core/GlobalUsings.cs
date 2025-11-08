@@ -1,0 +1,1 @@
+global using DatabaseModels = PickMeUp.Core.Database.Models;
