@@ -201,6 +201,6 @@ internal class EmailService(
         /// <summary>
         /// The model to pass to the Razor template.
         /// </summary>
-        public TModel Model { get; set; } = default!;
+        public required TModel Model { get; set; }
     }
 }

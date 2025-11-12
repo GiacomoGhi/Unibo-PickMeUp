@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
@@ -14,6 +14,12 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\PickMeUp.Enums\PickMeUp.Enums.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Update="Services\Email\Templates\**\*.cshtml">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 </Project>

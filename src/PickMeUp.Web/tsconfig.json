@@ -10,8 +10,5 @@
 
     "skipLibCheck": true
   },
-  "exclude": [
-    "bin",
-    "obj"
-  ]
+  "exclude": ["bin", "obj"]
 }

@@ -55,6 +55,16 @@ internal class User
     /// Expiration date and time for the email confirmation token.
     /// </summary>
     public DateTime? EmailConfirmationTokenExpiry { get; set; }
+
+    /// <summary>
+    /// Password reset token (null if no reset is pending).
+    /// </summary>
+    public string? PasswordResetToken { get; set; }
+
+    /// <summary>
+    /// Expiration date and time for the password reset token.
+    /// </summary>
+    public DateTime? PasswordResetTokenExpiry { get; set; }
 }
 
 internal class UserConfiguration : IEntityTypeConfiguration<User>

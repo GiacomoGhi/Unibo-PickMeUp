@@ -1,0 +1,51 @@
+@inject Microsoft.AspNetCore.Mvc.IUrlHelper Url
+<!-- Signup Modal - Bootstrap Standard -->
+<div class="modal fade" id="signupModal" tabindex="-1" aria-labelledby="signupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="signupModalLabel">Registrati</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="googleSignupBtn" class="mb-3" data-url="@Url.Action("GoogleLogin", "Auth")"></div>
+                
+                <div class="divider"><span>oppure</span></div>
+                
+                <form id="signupForm" data-url="@Url.Action("SignUp", "Auth")">
+                    <div class="mb-3">
+                        <label for="signupFirstName" class="form-label">Nome</label>
+                        <input type="text" class="form-control" id="signupFirstName" name="FirstName" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="signupLastName" class="form-label">Cognome</label>
+                        <input type="text" class="form-control" id="signupLastName" name="LastName" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="signupEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="signupEmail" name="Email" required />
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="signupPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="signupPassword" name="Password" minlength="8" required />
+                        <small class="form-text text-muted">Minimo 8 caratteri</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="signupConfirmPassword" class="form-label">Conferma Password</label>
+                        <input type="password" class="form-control" id="signupConfirmPassword" name="ConfirmPassword" required />
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary w-100">Registrati</button>
+                </form>
+                
+                <div class="text-center mt-3">
+                    <small>Hai già un account? <a href="#" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">Accedi</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

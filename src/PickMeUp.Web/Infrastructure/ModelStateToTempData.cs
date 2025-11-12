@@ -10,70 +10,33 @@ namespace PickMeUp.Web.Infrastructure;
 
 public class ModelStateToTempDataAttribute : ActionFilterAttribute
 {
+    /// <summary>
+    /// The TempData key used to store serialized ModelState data.
+    /// </summary>
     public static string MODELSTATE_KEY = "ModelStateModel";
 
-    void OnActionExecutedModelstates(ActionExecutedContext context)
-    {
-        if (context.Result is ViewResult)
-        {
-            // SE SONO IN UNA VIEW PROVO A RICARICARE IL MODELSTATE SE PREPARATO DALLA RICHIESTA PRECEDENTE
-
-            var controller = context.Controller as Controller;
-            var serialisedModelState = controller?.TempData[MODELSTATE_KEY] as string;
-            if (serialisedModelState != null)
-            {
-                context.ModelState.Merge(DeserialiseModelState(serialisedModelState));
-            }
-        }
-        else if (context.Result is RedirectResult
-            || context.Result is RedirectToRouteResult
-            || context.Result is RedirectToActionResult)
-        {
-            // SE SONO IN UN REDIRECT PRESERVO GLI ERRORI NEL MODELSTATE
-
-            if (!context.ModelState.IsValid)
-            {
-                var controller = context.Controller as Controller;
-                if (controller != null && context.ModelState != null)
-                {
-                    controller.TempData[MODELSTATE_KEY] = SerialiseModelState(context.ModelState);
-                }
-            }
-        }
-    }
-
+    /// <summary>
+    /// Called after the action executes. Handles ModelState preservation/restoration.
+    /// </summary>
     public override void OnActionExecuted(ActionExecutedContext context)
     {
         OnActionExecutedModelstates(context);
         base.OnActionExecuted(context);
     }
 
-    string SerialiseModelState(ModelStateDictionary modelState)
-    {
-        var errorList = modelState
-            .Select(x => new ModelStateTransferValue
-            {
-                Key = x.Key,
-                AttemptedValue = x.Value.AttemptedValue,
-                RawValue = x.Value.RawValue,
-                ErrorMessages = x.Value.Errors.Select(err => err.ErrorMessage).ToArray(),
-            }).ToList();
-
-        return JsonConvert.SerializeObject(errorList);
-    }
-
+    /// <summary>
+    /// Deserializes a JSON string back into a ModelStateDictionary.
+    /// </summary>
     public static ModelStateDictionary DeserialiseModelState(string serialisedErrorList)
     {
-        var errorList = JsonConvert.DeserializeObject<List<ModelStateTransferValue>>(serialisedErrorList);
+        var errorList = JsonConvert.DeserializeObject<List<ModelStateTransferValue>>(serialisedErrorList) ?? [];
         var modelState = new ModelStateDictionary();
 
         foreach (var item in errorList)
         {
-            if (item.RawValue != null &&
-                item.RawValue is Newtonsoft.Json.Linq.JContainer)
+            if (item.RawValue is Newtonsoft.Json.Linq.JContainer jContainer)
             {
-                var vettore = ((Newtonsoft.Json.Linq.JContainer)item.RawValue);
-                modelState.SetModelValue(item.Key, vettore.Values<string>().ToArray(), item.AttemptedValue);
+                modelState.SetModelValue(item.Key, jContainer.Values<string>().ToArray(), item.AttemptedValue);
             }
             else
             {
@@ -85,75 +48,122 @@ public class ModelStateToTempDataAttribute : ActionFilterAttribute
                 modelState.AddModelError(item.Key, error);
             }
         }
+
         return modelState;
+    }
+
+    /// <summary>
+    /// Handles ModelState preservation and restoration based on the action result type.
+    /// </summary>
+    private static void OnActionExecutedModelstates(ActionExecutedContext context)
+    {
+        if (context.Result is ViewResult && context.Controller is Controller controller)
+        {
+            // SE SONO IN UNA VIEW PROVO A RICARICARE IL MODELSTATE SE PREPARATO DALLA RICHIESTA PRECEDENTE
+            if (controller.TempData[MODELSTATE_KEY] is string serialisedModelState)
+            {
+                context.ModelState.Merge(DeserialiseModelState(serialisedModelState));
+            }
+        }
+        else if (context.Result is RedirectResult or RedirectToRouteResult or RedirectToActionResult)
+        {
+            // SE SONO IN UN REDIRECT PRESERVO GLI ERRORI NEL MODELSTATE
+            if (!context.ModelState.IsValid && context.Controller is Controller controllerRedirect)
+            {
+                controllerRedirect.TempData[MODELSTATE_KEY] = SerialiseModelState(context.ModelState);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Serializes a ModelStateDictionary to a JSON string for storage in TempData.
+    /// </summary>
+    private static string SerialiseModelState(ModelStateDictionary modelState)
+    {
+        var errorList = modelState
+            .Select(x => new ModelStateTransferValue
+            {
+                Key = x.Key,
+                AttemptedValue = x.Value?.AttemptedValue,
+                RawValue = x.Value?.RawValue,
+                ErrorMessages = x.Value?.Errors.Select(err => err.ErrorMessage).ToArray() ?? [],
+            }).ToList();
+
+        return JsonConvert.SerializeObject(errorList);
     }
 
     public class ModelStateTransferValue
     {
-        public string Key { get; set; }
-        public string AttemptedValue { get; set; }
-        public object RawValue { get; set; }
-        public string[] ErrorMessages { get; set; }
+        /// <summary>
+        /// The model property key (e.g., "Email", "Password").
+        /// </summary>
+        public string Key { get; set; } = default!;
+        
+        /// <summary>
+        /// The attempted value submitted by the user.
+        /// </summary>
+        public string? AttemptedValue { get; set; }
+        
+        /// <summary>
+        /// The raw value from model binding.
+        /// </summary>
+        public object? RawValue { get; set; }
+        
+        /// <summary>
+        /// Validation error messages associated with this field.
+        /// </summary>
+        public string[] ErrorMessages { get; set; } = [];
     }
 }
 
-
 public static class ModelStateExtensions
 {
-
+    /// <summary>
+    /// Checks if a specific field has a value stored in the preserved ModelState.
+    /// </summary>
     public static bool HasToRestoreValue(this ITempDataDictionary tempData, string name)
     {
-        if (tempData.ContainsKey(ModelStateToTempDataAttribute.MODELSTATE_KEY))
+        if (!tempData.TryGetValue(ModelStateToTempDataAttribute.MODELSTATE_KEY, out object? value)
+            || value is not string serialised)
         {
-            var modelstateToRestore = ModelStateToTempDataAttribute.DeserialiseModelState(tempData[ModelStateToTempDataAttribute.MODELSTATE_KEY].ToString());
-            if (modelstateToRestore is ModelStateDictionary)
-            {
-                if (modelstateToRestore.ContainsKey(name))
-                {
-                    return true;
-                }
-            }
+            return false;
         }
 
-        return false;
+        var modelstateToRestore = ModelStateToTempDataAttribute.DeserialiseModelState(serialised);
+        return modelstateToRestore.ContainsKey(name);
     }
 
-    public static object TryRestoreValue(this ITempDataDictionary tempData, string name)
+    /// <summary>
+    /// Attempts to restore the attempted value for a specific field from the preserved ModelState.
+    /// </summary>
+    public static object? TryRestoreValue(this ITempDataDictionary tempData, string name)
     {
-        if (tempData.ContainsKey(ModelStateToTempDataAttribute.MODELSTATE_KEY))
+        if (!tempData.TryGetValue(ModelStateToTempDataAttribute.MODELSTATE_KEY, out object? value)
+            || value is not string serialised
+            || !ModelStateToTempDataAttribute.DeserialiseModelState(serialised).TryGetValue(name, out var entry))
         {
-            var modelstateToRestore = ModelStateToTempDataAttribute.DeserialiseModelState(tempData[ModelStateToTempDataAttribute.MODELSTATE_KEY].ToString());
-            if (modelstateToRestore is ModelStateDictionary)
-            {
-                if (modelstateToRestore.ContainsKey(name))
-                {
-                    if (modelstateToRestore[name].AttemptedValue != null)
-                    {
-                        return modelstateToRestore[name].AttemptedValue;
-                    }
-                }
-            }
+            return null;
         }
-
-        return null;
+        
+        return entry.AttemptedValue;
     }
 }
 
 public static class ModelStateRazorPageExtensions
 {
+    /// <summary>
+    /// Gets the preserved ModelState as a JSON string in camelCase format.
+    /// Used for client-side validation or error display.
+    /// </summary>
     public static string GetModelStateDictionaryToJson(this Microsoft.AspNetCore.Mvc.Razor.RazorPageBase page)
     {
-        var modelstate = new ModelStateDictionary();
-
-        if (page.TempData.ContainsKey(ModelStateToTempDataAttribute.MODELSTATE_KEY))
+        if (!page.TempData.TryGetValue(ModelStateToTempDataAttribute.MODELSTATE_KEY, out object? value)
+            || value is not string serialised)
         {
-            var deserialisedModelState = ModelStateToTempDataAttribute.DeserialiseModelState(page.TempData[ModelStateToTempDataAttribute.MODELSTATE_KEY] as string);
-            if (deserialisedModelState is ModelStateDictionary)
-            {
-                modelstate = deserialisedModelState;
-            }
+            return JsonSerializerHelper.ToJsonCamelCase(new ModelStateDictionary());
         }
 
-        return JsonSerializer.ToJsonCamelCase(modelstate);
+        var modelstate = ModelStateToTempDataAttribute.DeserialiseModelState(serialised);
+        return JsonSerializerHelper.ToJsonCamelCase(modelstate);
     }
 }

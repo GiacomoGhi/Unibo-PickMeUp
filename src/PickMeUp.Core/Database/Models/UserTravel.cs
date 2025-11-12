@@ -82,18 +82,18 @@ internal class UserTravelConfiguration : IEntityTypeConfiguration<UserTravel>
     public void Configure(EntityTypeBuilder<UserTravel> builder)
     {
         // Primary key
-        builder.HasKey(x => x.UserTravelId);
+        builder.HasKey(e => e.UserTravelId);
 
         // Constraints
-        builder.Property(x => x.DepartureAddress)
+        builder.Property(e => e.DepartureAddress)
             .HasMaxLength(250);
 
-        builder.Property(x => x.DestinationAddress)
+        builder.Property(e => e.DestinationAddress)
             .HasMaxLength(250);
 
         // Relationships
-        builder.HasOne<User>()
+        builder.HasOne(e => e.User)
             .WithMany()
-            .HasForeignKey(x => x.UserId);
+            .HasForeignKey(e => e.UserId);
     }
 }

@@ -1,0 +1,234 @@
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Mvc;
+using PickMeUp.Core.Services.Auth;
+using PickMeUp.Web.Infrastructure;
+using System;
+using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using PickMeUp.Web.Models.Auth;
+
+namespace PickMeUp.Web.Controllers;
+
+[Alerts]
+[ModelStateToTempData]
+public partial class AuthController : Controller
+{
+    private readonly IAuthService _authService;
+
+    public AuthController(IAuthService authService)
+    {
+        _authService = authService;
+    }
+
+    [HttpPost]
+    public async virtual Task<ControllerResult> Login([FromBody] LoginViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ControllerResult.Error("Dati non validi");
+        }
+
+        var loginResult = await _authService.LoginAsync(new LoginParams
+        {
+            Email = model.Email,
+            Password = model.Password,
+        });
+
+        if (loginResult.HasNonSuccessStatusCode)
+        {
+            return ControllerResult.Error(loginResult.ErrorMessage);
+        }
+        
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, loginResult.Data!.UserId.ToString()),
+            new(ClaimTypes.Email, loginResult.Data.UserEmail)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            new AuthenticationProperties
+            {
+                ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddMonths(3) : null,
+                IsPersistent = model.RememberMe,
+            });
+
+        AlertHelper.AddSuccess(this, "Login effettuato con successo");
+        var redirectUrl = !string.IsNullOrWhiteSpace(model.ReturnUrl)
+            ? model.ReturnUrl
+            : Url.Action("Landing", "Home");
+
+        return ControllerResult.Success(new { redirectUrl });
+    }
+
+    [HttpPost]
+    public async virtual Task<ControllerResult> SignUp([FromBody] SignUpViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ControllerResult.Error("Dati non validi");
+        }
+
+        var signUpResult = await _authService.SignUpAsync(new SignUpParams
+        {
+            Email = model.Email,
+            Password = model.Password,
+            FirstName = model.FirstName,
+            LastName = model.LastName,
+        });
+
+        if (signUpResult.HasNonSuccessStatusCode)
+        {
+            return ControllerResult.Error(signUpResult.ErrorMessage);
+        }
+
+        AlertHelper.AddSuccess(this, "Registrazione completata! Controlla la tua email per confermare il tuo account.");
+        return ControllerResult.Success();
+    }
+
+    [HttpPost]
+    public async virtual Task<ControllerResult> ResendConfirmation([FromBody] ResendConfirmationViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ControllerResult.Error("Dati non validi");
+        }
+
+        var result = await _authService.ResendConfirmationEmailAsync(model.Email);
+
+        if (result.HasNonSuccessStatusCode)
+        {
+            return ControllerResult.Error(result.ErrorMessage);
+        }
+
+            AlertHelper.AddSuccess(this, "Email di conferma inviata! Controlla la tua casella di posta.");
+            return ControllerResult.Success();
+    }
+
+    [HttpPost]
+    public async virtual Task<ControllerResult> GoogleLogin([FromBody] GoogleLoginRequest request)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var token = handler.ReadJwtToken(request.Credential);
+
+        var email = token.Claims.FirstOrDefault(c => c.Type == "email")?.Value;
+        var firstName = token.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+        var lastName = token.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
+        var googleUserId = token.Claims.FirstOrDefault(c => c.Type == "sub")?.Value;
+
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(googleUserId))
+        {
+            return ControllerResult.Error("Token Google non valido");
+        }
+
+        var result = await _authService.GoogleSignUpOrLoginAsync(new GoogleSignUpParams
+        {
+            GoogleIdToken = request.Credential,
+            Email = email,
+            FirstName = firstName ?? "",
+            LastName = lastName ?? "",
+            GoogleUserId = googleUserId
+        });
+
+        if (result.HasNonSuccessStatusCode)
+        {
+            return ControllerResult.Error(result.ErrorMessage);
+        }
+        
+        var claims = new List<Claim>
+        {
+            new(ClaimTypes.NameIdentifier, result.Data!.UserId.ToString()),
+            new(ClaimTypes.Email, result.Data.UserEmail)
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+        await HttpContext.SignInAsync(
+            CookieAuthenticationDefaults.AuthenticationScheme,
+            new ClaimsPrincipal(claimsIdentity),
+            new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = DateTimeOffset.UtcNow.AddMonths(3)
+            });
+
+        AlertHelper.AddSuccess(this, "Login effettuato con successo!");
+
+        var redirectUrl = string.IsNullOrWhiteSpace(request.ReturnUrl)
+            ? Url.Action("Landing", "Home")
+            : request.ReturnUrl;
+
+        return ControllerResult.Success(new { redirectUrl });
+    }
+
+    [HttpPost]
+    public virtual IActionResult Logout()
+    {
+        HttpContext.SignOutAsync();
+        AlertHelper.AddSuccess(this, "Utente scollegato correttamente");
+        return RedirectToAction("Landing", "Home");
+    }
+
+    [HttpPost]
+    public async virtual Task<ControllerResult> RequestPasswordReset([FromBody] RequestPasswordResetViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return ControllerResult.Error("Dati non validi");
+        }
+
+        var result = await _authService.RequestPasswordResetAsync(model.Email);
+
+        if (!result.HasNonSuccessStatusCode)
+        {
+            AlertHelper.AddSuccess(this, "Se l'email è registrata, riceverai le istruzioni per reimpostare la password.");
+            return ControllerResult.Success();
+        }
+
+        return ControllerResult.Error(result.ErrorMessage);
+    }
+
+    [HttpGet]
+    public virtual IActionResult ResetPassword(int userId, string token)
+    {
+        if (userId <= 0 || string.IsNullOrWhiteSpace(token))
+        {
+            AlertHelper.AddError(this, "Link non valido o scaduto");
+            return RedirectToAction("Landing", "Home");
+        }
+
+        var model = new ResetPasswordViewModel
+        {
+            UserId = userId,
+            Token = token
+        };
+
+        return View(model);
+    }
+
+    [HttpPost]
+    public async virtual Task<IActionResult> ResetPassword(ResetPasswordViewModel model)
+    {
+        if (!ModelState.IsValid)
+        {
+            return View(model);
+        }
+
+        var result = await _authService.ResetPasswordAsync(model.UserId, model.Token, model.NewPassword);
+
+        if (result.HasNonSuccessStatusCode)
+        {
+            ModelState.AddModelError(string.Empty, result.ErrorMessage);
+            return View(model);
+        }
+
+        AlertHelper.AddSuccess(this, "Password reimpostata con successo! Ora puoi effettuare il login.");
+        return RedirectToAction("Landing", "Home");
+    }
+}

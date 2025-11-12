@@ -73,7 +73,7 @@ public static class ConfigurationExtensions
     /// <summary>
     /// Setup pick me up core database.
     /// </summary>
-    public static async Task<IServiceProvider> SetupDatabase(this IServiceProvider serviceProvider, bool isDevelopmentEnv)
+    public static async Task<IServiceProvider> SetupDatabaseAsync(this IServiceProvider serviceProvider, bool isDevelopmentEnv)
     {
         // Get context
         using var scope = serviceProvider.CreateScope();

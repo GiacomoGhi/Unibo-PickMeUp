@@ -79,16 +79,16 @@ internal class UserPickUpRequestConfiguration : IEntityTypeConfiguration<UserPic
     public void Configure(EntityTypeBuilder<UserPickUpRequest> builder)
     {
         // Primary key
-        builder.HasKey(userPickUpRequest => userPickUpRequest.UserPickUpRequestId);
+        builder.HasKey(e => e.UserPickUpRequestId);
 
         // One-to-many relationship with User
-        builder.HasOne(userPickUpRequest => userPickUpRequest.User)
+        builder.HasOne(e => e.User)
             .WithMany()
-            .HasForeignKey(userPickUpRequest => userPickUpRequest.UserId);
+            .HasForeignKey(e => e.UserId);
 
         // One-to-many relationship with UserTravel
-        builder.HasOne(userPickUpRequest => userPickUpRequest.UserTravel)
+        builder.HasOne(e => e.UserTravel)
             .WithMany()
-            .HasForeignKey(userPickUpRequest => userPickUpRequest.UserTravelId);
+            .HasForeignKey(e => e.UserTravelId);
     }
 }

@@ -4,12 +4,12 @@ var utilities;
         let res = await fetch(url, {
             method: "POST",
             headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
+                Accept: "application/json",
+                "Content-Type": "application/json",
+                "X-Requested-With": "XMLHttpRequest",
             },
             credentials: "same-origin",
-            body: JSON.stringify(body)
+            body: JSON.stringify(body),
         });
         return res;
     }
@@ -23,8 +23,8 @@ var utilities;
         let res = await fetch(url, {
             method: "GET",
             headers: {
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest',
+                Accept: "application/json",
+                "X-Requested-With": "XMLHttpRequest",
             },
             credentials: "same-origin",
         });
@@ -37,10 +37,12 @@ var utilities;
     }
     utilities.getJsonT = getJsonT;
     /**
-    * Naviga un url evitando di memorizzare la navigazione nell'history, mantenendo la funzionalità di +ctrl per aprire in una nuova tab
-    */
+     * Naviga un url evitando di memorizzare la navigazione nell'history, mantenendo la funzionalità di +ctrl per aprire in una nuova tab
+     */
     function navigateUrlWithoutHystory(url) {
-        if (window.event && window.event && window.event.ctrlKey) {
+        if (window.event &&
+            window.event &&
+            window.event.ctrlKey) {
             //ctrl was held down during the click
             window.open(url);
         }
@@ -55,7 +57,8 @@ var utilities;
     function navigateUrlExcludeOnitNotNavigate(url) {
         if (event.target instanceof HTMLButtonElement == false &&
             event.target instanceof HTMLAnchorElement == false &&
-            (event.target instanceof HTMLTableCellElement && event.target.hasAttribute('data-onit-not-navigate') == false)) {
+            event.target instanceof HTMLTableCellElement &&
+            event.target.hasAttribute("data-onit-not-navigate") == false) {
             if (window.event && window.event.ctrlKey) {
                 window.open(url);
             }
@@ -126,27 +129,35 @@ var utilities;
         if (paramName20) {
             params.set(paramName20, paramValue20);
         }
-        return urlBase.pathname + '?' + params.toString();
+        return urlBase.pathname + "?" + params.toString();
     }
     utilities.composeRelativeUrlWithParams = composeRelativeUrlWithParams;
     function alertError(text, duration = 0, onclickCallback = null) {
-        alertToastify(text, 'error', duration, onclickCallback);
+        alertToastify(text, "error", duration, onclickCallback);
     }
     utilities.alertError = alertError;
     function alertInfo(text, duration = 0, onclickCallback = null) {
-        alertToastify(text, 'info', duration, onclickCallback);
+        alertToastify(text, "info", duration, onclickCallback);
     }
     utilities.alertInfo = alertInfo;
     function alertWarning(text, duration = 0, onclickCallback = null) {
-        alertToastify(text, 'warning', duration, onclickCallback);
+        alertToastify(text, "warning", duration, onclickCallback);
     }
     utilities.alertWarning = alertWarning;
     function alertSuccess(text, duration = 0, onclickCallback = null) {
-        alertToastify(text, 'success', duration, onclickCallback);
+        alertToastify(text, "success", duration, onclickCallback);
     }
     utilities.alertSuccess = alertSuccess;
     function alertToastify(text, level, duration = 0, onClick) {
-        Toastify({ close: true, gravity: 'bottom', position: 'left', className: 'onit-toastify onit-toastify-' + level, text: text, duration: duration, callback: onClick }).showToast();
+        Toastify({
+            close: true,
+            gravity: "bottom",
+            position: "left",
+            className: "onit-toastify onit-toastify-" + level,
+            text: text,
+            duration: duration,
+            callback: onClick,
+        }).showToast();
     }
     utilities.alertToastify = alertToastify;
 })(utilities || (utilities = {}));

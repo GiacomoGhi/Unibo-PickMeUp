@@ -16,26 +16,27 @@ internal class AuthService(
     IConfiguration configuration) : IAuthService
 {
     private const int CONFERMATION_EMAIL_TOKEN_EXPIRY_HOURS = 24;
+    private const int PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 1;
 
     private readonly PickMeUpDbContext _dbContext = dbContext;
     private readonly IEmailService _emailService = emailService;
     private readonly IConfiguration _configuration = configuration;
 
     /// <inheritdoc/>
-    public async Task<Result<LoginResult>> LoginAsync(LoginParams parameters)
+    public async Task<Result<LoginResult>> LoginAsync(LoginParams requestParams)
     {
         // Validate parameters
-        if (string.IsNullOrWhiteSpace(parameters.Email))
+        if (string.IsNullOrWhiteSpace(requestParams.Email))
         {
-            return Result.InvalidArgument(nameof(parameters.Email));
+            return Result.InvalidArgument(nameof(requestParams.Email));
         }
-        if (string.IsNullOrWhiteSpace(parameters.Password))
+        if (string.IsNullOrWhiteSpace(requestParams.Password))
         {
-            return Result.InvalidArgument(nameof(parameters.Password));
+            return Result.InvalidArgument(nameof(requestParams.Password));
         }
 
         // Normalize email
-        var normalizedEmail = parameters.Email.Trim().ToUpperInvariant();
+        var normalizedEmail = requestParams.Email.Trim().ToUpperInvariant();
 
         // Find user by email
         var user = await _dbContext.Users
@@ -45,13 +46,8 @@ internal class AuthService(
                         && user.NormalizedEmail == normalizedEmail)
             .FirstOrDefaultAsync();
 
-        if (user is null)
-        {
-            return Result.Error("Invalid email or password");
-        }
-
         // Verify user
-        if (user is null || user.PasswordHash != CryptographyHelper.Hash(parameters.Password))
+        if (user is null || user.PasswordHash != CryptographyHelper.Hash(requestParams.Password))
         {
             return Result.Error("Invalid email or password");
         }
@@ -66,52 +62,62 @@ internal class AuthService(
     }
 
     /// <inheritdoc/>
-    public async Task<Result> SignUpAsync(SignUpParams parameters)
+    public async Task<Result> SignUpAsync(SignUpParams requestPrams)
     {
         // Validate parameters
-        if (string.IsNullOrWhiteSpace(parameters.Email))
+        if (string.IsNullOrWhiteSpace(requestPrams.Email))
         {
-            return Result.InvalidArgument(nameof(parameters.Email));
+            return Result.InvalidArgument(nameof(requestPrams.Email));
         }
-        if (string.IsNullOrWhiteSpace(parameters.Password))
+        if (string.IsNullOrWhiteSpace(requestPrams.Password))
         {
-            return Result.InvalidArgument(nameof(parameters.Password));
+            return Result.InvalidArgument(nameof(requestPrams.Password));
         }
-        if (string.IsNullOrWhiteSpace(parameters.FirstName))
+        if (string.IsNullOrWhiteSpace(requestPrams.FirstName))
         {
-            return Result.InvalidArgument(nameof(parameters.FirstName));
+            return Result.InvalidArgument(nameof(requestPrams.FirstName));
         }
-        if (string.IsNullOrWhiteSpace(parameters.LastName))
+        if (string.IsNullOrWhiteSpace(requestPrams.LastName))
         {
-            return Result.InvalidArgument(nameof(parameters.LastName));
+            return Result.InvalidArgument(nameof(requestPrams.LastName));
         }
 
         // TODO validate length and complexity
         // Validate password strength
-        if (parameters.Password.Length < 8)
+        if (requestPrams.Password.Length < 8)
         {
             return Result.InvalidArgument("Password must be at least 8 characters long");
         }
 
         // Normalize email
-        var normalizedEmail = parameters.Email.Trim().ToUpperInvariant();
+        var normalizedEmail = requestPrams.Email.Trim().ToUpperInvariant();
 
         // Check if user already exists
-        if (await _dbContext.Users
-                .Where(user => user.NormalizedEmail == normalizedEmail 
-                            && user.DeletionDateTime == null)
-                .AnyAsync())
+        var existingUser = await _dbContext.Users
+            .Where(user => user.NormalizedEmail == normalizedEmail 
+                        && user.DeletionDateTime == null)
+            .FirstOrDefaultAsync();
+
+        if (existingUser is not null)
         {
-            return Result.Error("Invalid email");
+            // Don't reveal if user exists or not for security reasons
+            // Return success anyway to prevent email enumeration
+            
+            // TODO Optionally: send a security notification to the existing user
+            // Ignoring the result as it's not critical
+            // _ = await _emailService.SendAccountExistsNotificationAsync(existingUser.Email, existingUser.FirstName);
+            
+            return Result.Success();
         }
 
         // Create new user
         var newUser = new DatabaseModels.User
         {
-            Email = normalizedEmail,
-            PasswordHash = CryptographyHelper.Hash(parameters.Password),
-            FirstName = parameters.FirstName.Trim(),
-            LastName = parameters.LastName.Trim(),
+            Email = requestPrams.Email,
+            NormalizedEmail = normalizedEmail,
+            PasswordHash = CryptographyHelper.Hash(requestPrams.Password),
+            FirstName = requestPrams.FirstName.Trim(),
+            LastName = requestPrams.LastName.Trim(),
             IsEmailConfirmed = false,
             EmailConfirmationToken = GenerateConfirmationToken(),
             EmailConfirmationTokenExpiry = DateTime.UtcNow.AddHours(CONFERMATION_EMAIL_TOKEN_EXPIRY_HOURS),
@@ -122,8 +128,8 @@ internal class AuthService(
         // Save changes
         await _dbContext.SaveChangesAsync();
 
-        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
-        var confirmationUrl = $"{baseUrl}/Login/ConfirmEmail?userId={newUser.UserId}&token={Uri.EscapeDataString(newUser.EmailConfirmationToken)}";
+        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5178";
+        var confirmationUrl = $"{baseUrl}/Home/ConfirmEmail?userId={newUser.UserId}&token={Uri.EscapeDataString(newUser.EmailConfirmationToken)}";
 
         return await _emailService.SendEmailConfirmationAsync(newUser.Email, newUser.EmailConfirmationToken, confirmationUrl);
     }
@@ -180,56 +186,53 @@ internal class AuthService(
 
         var user = await _dbContext.Users
             .Where(user => !user.DeletionDateTime.HasValue
+                        && !user.IsEmailConfirmed
                         && user.NormalizedEmail == normalizedEmail)
             .FirstOrDefaultAsync();
 
         if (user is null)
         {
-            return Result.NotFound("User");
-        }
-
-        if (user.IsEmailConfirmed)
-        {
-            return Result.Error("Email already confirmed");
+            // Don't reveal if user exists or not for security reasons
+            // Return success anyway to prevent email enumeration
+            return Result.Success();
         }
 
         // Generate new token
-
         user.EmailConfirmationToken = GenerateConfirmationToken();
         user.EmailConfirmationTokenExpiry = DateTime.UtcNow.AddHours(CONFERMATION_EMAIL_TOKEN_EXPIRY_HOURS);
 
         await _dbContext.SaveChangesAsync();
 
         var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5000";
-        var confirmationUrl = $"{baseUrl}/Login/ConfirmEmail?userId={user.UserId}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
+        var confirmationUrl = $"{baseUrl}/Home/ConfirmEmail?userId={user.UserId}&token={Uri.EscapeDataString(user.EmailConfirmationToken)}";
 
         return await _emailService
             .SendEmailConfirmationAsync(user.Email, user.EmailConfirmationToken, confirmationUrl);
     }
 
     /// <inheritdoc/>
-    public async Task<Result<LoginResult>> GoogleSignUpOrLoginAsync(GoogleSignUpParams parameters)
+    public async Task<Result<LoginResult>> GoogleSignUpOrLoginAsync(GoogleSignUpParams requestParams)
     {
         // Validate parameters
-        if (string.IsNullOrWhiteSpace(parameters.Email))
+        if (string.IsNullOrWhiteSpace(requestParams.Email))
         {
-            return Result.InvalidArgument(nameof(parameters.Email));
+            return Result.InvalidArgument(nameof(requestParams.Email));
         }
-        if (string.IsNullOrWhiteSpace(parameters.GoogleUserId))
+        if (string.IsNullOrWhiteSpace(requestParams.GoogleUserId))
         {
-            return Result.InvalidArgument(nameof(parameters.GoogleUserId));
+            return Result.InvalidArgument(nameof(requestParams.GoogleUserId));
         }
-        if (string.IsNullOrWhiteSpace(parameters.FirstName))
+        if (string.IsNullOrWhiteSpace(requestParams.FirstName))
         {
-            return Result.InvalidArgument(nameof(parameters.FirstName));
+            return Result.InvalidArgument(nameof(requestParams.FirstName));
         }
-        if (string.IsNullOrWhiteSpace(parameters.LastName))
+        if (string.IsNullOrWhiteSpace(requestParams.LastName))
         {
-            return Result.InvalidArgument(nameof(parameters.LastName));
+            return Result.InvalidArgument(nameof(requestParams.LastName));
         }
 
         // Normalize email
-        var normalizedEmail = parameters.Email.Trim().ToUpperInvariant();
+        var normalizedEmail = requestParams.Email.Trim().ToUpperInvariant();
 
         // Check if user already exists
         var existingUser = await _dbContext.Users
@@ -257,11 +260,12 @@ internal class AuthService(
         // Create new user with Google account
         var newUser = new DatabaseModels.User
         {
-            Email = normalizedEmail,
+            Email = requestParams.Email,
+            NormalizedEmail = normalizedEmail,
             // For Google users, we use a random hash since they don't have a password
             PasswordHash = CryptographyHelper.Hash(Guid.NewGuid().ToString()),
-            FirstName = parameters.FirstName.Trim(),
-            LastName = parameters.LastName.Trim(),
+            FirstName = requestParams.FirstName.Trim(),
+            LastName = requestParams.LastName.Trim(),
             IsEmailConfirmed = true, // Google accounts are pre-verified
             DeletionDateTime = null
         };
@@ -285,5 +289,77 @@ internal class AuthService(
     {
         return Convert.ToBase64String(Guid.NewGuid().ToByteArray()) + 
                Convert.ToBase64String(Guid.NewGuid().ToByteArray());
+    }
+
+    /// <inheritdoc/>
+    public async Task<Result> RequestPasswordResetAsync(string email)
+    {
+        var normalizedEmail = email.Trim().ToUpperInvariant();
+
+        var user = await _dbContext.Users
+            .Where(user => !user.DeletionDateTime.HasValue
+                        && user.NormalizedEmail == normalizedEmail
+                        && user.IsEmailConfirmed)
+            .FirstOrDefaultAsync();
+
+        if (user is null)
+        {
+            // Don't reveal if user exists or not for security reasons
+            // Return success anyway to prevent email enumeration
+            return Result.Success();
+        }
+
+        // Generate reset token
+        user.PasswordResetToken = GenerateConfirmationToken();
+        user.PasswordResetTokenExpiry = DateTime.UtcNow.AddHours(PASSWORD_RESET_TOKEN_EXPIRY_HOURS);
+
+        await _dbContext.SaveChangesAsync();
+
+        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "http://localhost:5178";
+        var resetUrl = $"{baseUrl}/Auth/ResetPassword?userId={user.UserId}&token={Uri.EscapeDataString(user.PasswordResetToken)}";
+
+        return await _emailService.SendPasswordResetAsync(user.Email, resetUrl);
+    }
+
+    /// <inheritdoc/>
+    public async Task<Result> ResetPasswordAsync(int userId, string token, string newPassword)
+    {
+        // Validate parameters
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return Result.InvalidArgument(nameof(token));
+        }
+        if (string.IsNullOrWhiteSpace(newPassword))
+        {
+            return Result.InvalidArgument(nameof(newPassword));
+        }
+
+        // Validate password strength
+        if (newPassword.Length < 8)
+        {
+            return Result.InvalidArgument("Password must be at least 8 characters long");
+        }
+
+        var user = await _dbContext.Users
+            .Where(user => user.UserId == userId && user.DeletionDateTime == null)
+            .FirstOrDefaultAsync();
+
+        if (user is null
+            || string.IsNullOrWhiteSpace(user.PasswordResetToken) 
+            || user.PasswordResetToken != token
+            || !user.PasswordResetTokenExpiry.HasValue 
+            || user.PasswordResetTokenExpiry < DateTime.UtcNow)
+        {
+            return Result.Error("Invalid or expired reset token");
+        }
+
+        // Update password and clear reset token
+        user.PasswordHash = CryptographyHelper.Hash(newPassword);
+        user.PasswordResetToken = null;
+        user.PasswordResetTokenExpiry = null;
+
+        await _dbContext.SaveChangesAsync();
+
+        return Result.Success();
     }
 }

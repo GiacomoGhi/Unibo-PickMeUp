@@ -26,15 +26,10 @@ internal static class DataSeeder
                 Email = "john.doe@example.com",
                 PasswordHash = CryptographyHelper.Hash("Password123!"),
                 FirstName = "John",
-                LastName = "Doe"
+                LastName = "Doe",
+                NormalizedEmail = "JOHN.DOE@EXAMPLE.COM",
+                IsEmailConfirmed = true,
             },
-            new User
-            {
-                Email = "jane.smith@example.com",
-                PasswordHash = CryptographyHelper.Hash("Password123!"),
-                FirstName = "Jane",
-                LastName = "Smith"
-            }
         };
 
         context.Users.AddRange(users);

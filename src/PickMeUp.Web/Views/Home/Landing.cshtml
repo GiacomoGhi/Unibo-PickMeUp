@@ -1,0 +1,50 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+@{
+    ViewData["Title"] = "Pick-me-UP - Find your way";
+    Layout = "_Layout";
+}
+
+<div class="landing-hero">
+    <div class="hero-content">
+        <h1 class="hero-title">Find your way</h1>
+        
+        <form id="searchForm" class="search-form">
+            <div class="form-group">
+                <label for="destination">La Tua Destinazione</label>
+                <input type="text" id="destination" name="destination" class="form-control" placeholder="Inserisci indirizzo" />
+            </div>
+            
+            <div class="form-group">
+                <label for="departure">Indirizzo di Partenza</label>
+                <input type="text" id="departure" name="departure" class="form-control" placeholder="Inserisci indirizzo" />
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="departureDate">Data partenza</label>
+                    <input type="date" id="departureDate" name="departureDate" class="form-control" />
+                </div>
+                
+                <div class="form-group">
+                    <label for="departureTime">Ora</label>
+                    <input type="time" id="departureTime" name="departureTime" class="form-control" />
+                </div>
+            </div>
+            
+            <div class="action-buttons">
+                <button type="button" class="btn btn-primary btn-find-ride" onclick="handleFindRide()">
+                    Trova un Passaggio
+                </button>
+                <button type="button" class="btn btn-outline btn-add-trip" onclick="handleAddTrip()">
+                    Aggiungi un Viaggio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<footer class="landing-footer">
+    <p>footer</p>
+</footer>
+
+
