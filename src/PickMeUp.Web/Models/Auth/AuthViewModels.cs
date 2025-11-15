@@ -5,7 +5,6 @@ namespace PickMeUp.Web.Models.Auth
     public class GoogleLoginRequest
     {
         public string Credential { get; set; } = default!;
-        public string? ReturnUrl { get; set; }
     }
 
     public class LoginViewModel
@@ -13,7 +12,6 @@ namespace PickMeUp.Web.Models.Auth
         public string Email { get; set; } = default!;
         public string Password { get; set; } = default!;
         public bool RememberMe { get; set; }
-        public string? ReturnUrl { get; set; }
     }
 
     public class SignUpViewModel

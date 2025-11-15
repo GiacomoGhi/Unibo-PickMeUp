@@ -28,8 +28,25 @@ async function handleGoogleCallback(response) {
 
     handleControllerResult(result);
 
-    if (result.isSuccess && result.data?.redirectUrl) {
-      window.location.href = result.data.redirectUrl;
+    if (result.isSuccess) {
+      // Update authentication state
+      isAuthenticated = true;
+
+      // Close any open modal
+      const loginModal = bootstrap.Modal.getInstance(
+        document.getElementById("loginModal")
+      );
+      const signupModal = bootstrap.Modal.getInstance(
+        document.getElementById("signupModal")
+      );
+      if (loginModal) loginModal.hide();
+      if (signupModal) signupModal.hide();
+
+      // Show success message
+      utilities.alertSuccess("Login effettuato con successo!", 3000);
+
+      // Update UI without page reload
+      updateAuthUI();
     }
   } catch (error) {
     console.error("Google login error:", error);
@@ -51,8 +68,23 @@ document
 
       handleControllerResult(result);
 
-      if (result.isSuccess && result.data?.redirectUrl) {
-        window.location.href = result.data.redirectUrl;
+      if (result.isSuccess) {
+        // Update authentication state
+        isAuthenticated = true;
+
+        // Close the modal
+        const loginModal = bootstrap.Modal.getInstance(
+          document.getElementById("loginModal")
+        );
+        if (loginModal) {
+          loginModal.hide();
+        }
+
+        // Show success message
+        utilities.alertSuccess("Login effettuato con successo!", 3000);
+
+        // Update UI without page reload
+        updateAuthUI();
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -82,9 +114,24 @@ document
 
       if (result.isSuccess) {
         this.reset();
-        bootstrap.Modal.getInstance(
+        const signupModal = bootstrap.Modal.getInstance(
           document.getElementById("signupModal")
-        )?.hide();
+        );
+
+        if (signupModal) {
+          signupModal.hide();
+
+          // Wait for modal to close, then show info modal
+          document.getElementById("signupModal").addEventListener(
+            "hidden.bs.modal",
+            function () {
+              new bootstrap.Modal(
+                document.getElementById("accountActivationModal")
+              ).show();
+            },
+            { once: true }
+          );
+        }
       }
     } catch (error) {
       console.error("Signup error:", error);
@@ -108,9 +155,24 @@ document
 
       if (result.isSuccess) {
         this.reset();
-        bootstrap.Modal.getInstance(
+        const resendModal = bootstrap.Modal.getInstance(
           document.getElementById("resendModal")
-        )?.hide();
+        );
+
+        if (resendModal) {
+          resendModal.hide();
+
+          // Wait for modal to close, then show info modal
+          document.getElementById("resendModal").addEventListener(
+            "hidden.bs.modal",
+            function () {
+              new bootstrap.Modal(
+                document.getElementById("accountActivationModal")
+              ).show();
+            },
+            { once: true }
+          );
+        }
       }
     } catch (error) {
       console.error("Resend error:", error);
@@ -134,9 +196,24 @@ document
 
       if (result.isSuccess) {
         this.reset();
-        bootstrap.Modal.getInstance(
+        const resetModal = bootstrap.Modal.getInstance(
           document.getElementById("resetPasswordModal")
-        )?.hide();
+        );
+
+        if (resetModal) {
+          resetModal.hide();
+
+          // Wait for modal to close, then show info modal
+          document.getElementById("resetPasswordModal").addEventListener(
+            "hidden.bs.modal",
+            function () {
+              new bootstrap.Modal(
+                document.getElementById("passwordResetSentModal")
+              ).show();
+            },
+            { once: true }
+          );
+        }
       }
     } catch (error) {
       console.error("Reset password error:", error);
@@ -168,6 +245,23 @@ function handleAddTrip() {
     );
     new bootstrap.Modal(document.getElementById("loginModal")).show();
   }
+}
+
+// Update UI elements after login without page reload
+function updateAuthUI() {
+  // Update navigation, profile elements, etc.
+  const userNav = document.querySelector(".pmu-user-nav");
+  const authButtons = document.querySelector(".pmu-auth-buttons");
+
+  if (userNav) {
+    userNav.style.display = "block";
+  }
+  if (authButtons) {
+    authButtons.style.display = "none";
+  }
+
+  // Dispatch custom event that other scripts can listen to
+  window.dispatchEvent(new CustomEvent("userLoggedIn"));
 }
 
 // Initialize everything on window load

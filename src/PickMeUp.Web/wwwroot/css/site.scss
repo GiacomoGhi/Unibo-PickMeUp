@@ -1,6 +1,29 @@
-﻿@import "site.variables.scss";
+﻿// ============================================================================
+// PICKMEUP - MAIN STYLESHEET
+// ============================================================================
+// This is the main entry point for all styles. Compilation order matters:
+// 1. Import custom variables (which includes Bootstrap functions & variables)
+// 2. Import Bootstrap SCSS (uses our overridden variables)
+// 3. Import custom components and layouts
+// 4. Import page-specific styles
+// ============================================================================
 
-// Import bootstrap to be able to customize it with scss variables
+// 1. VARIABLES & DESIGN TOKENS
+// Import our custom variables first (includes Bootstrap integration)
+@import "site.variables.scss";
+
+// 2. BOOTSTRAP FRAMEWORK
+// Import full Bootstrap using our customized variables
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
 
+// 3. LAYOUT & BASE STYLES
 @import "site.layout.scss";
+
+// 4. COMPONENT STYLES
+@import "components/buttons.scss";
+@import "components/forms.scss";
+@import "components/modals.scss";
+
+// 5. PAGE-SPECIFIC STYLES
+@import "views/landing.scss";
+@import "views/auth-modal.scss";

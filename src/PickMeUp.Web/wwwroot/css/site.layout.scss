@@ -1,1 +1,346 @@
-﻿@import "site.variables.scss";
+﻿// ============================================================================
+// GLOBAL LAYOUT STYLES
+// ============================================================================
+
+// ============================================================================
+// CSS CUSTOM PROPERTIES (CSS Variables)
+// These can be changed at runtime for theme switching
+// ============================================================================
+:root {
+  // Color Tokens
+  --pmu-bg-primary: #{$bg-primary};
+  --pmu-bg-secondary: #{$bg-secondary};
+  --pmu-bg-tertiary: #{$bg-tertiary};
+  --pmu-text-primary: #{$text-primary};
+  --pmu-text-secondary: #{$text-secondary};
+  --pmu-text-tertiary: #{$text-tertiary};
+  --pmu-border-color: #{$border-color};
+
+  // Brand Colors
+  --pmu-primary: #{$primary-500};
+  --pmu-primary-hover: #{$primary-600};
+  --pmu-primary-active: #{$primary-700};
+
+  // Semantic Colors
+  --pmu-success: #{$success-500};
+  --pmu-warning: #{$warning-500};
+  --pmu-danger: #{$danger-500};
+
+  // Spacing (using SCSS variables for now, but could be overridden)
+  --pmu-spacing-xs: #{$spacing-xs};
+  --pmu-spacing-sm: #{$spacing-sm};
+  --pmu-spacing-md: #{$spacing-md};
+  --pmu-spacing-lg: #{$spacing-lg};
+  --pmu-spacing-xl: #{$spacing-xl};
+}
+
+// Future dark theme implementation
+// @media (prefers-color-scheme: dark) {
+//   :root {
+//     --pmu-bg-primary: #{$dark-bg-primary};
+//     --pmu-bg-secondary: #{$dark-bg-secondary};
+//     --pmu-text-primary: #{$dark-text-primary};
+//     // ... etc
+//   }
+// }
+
+// Or class-based theme switching
+// [data-theme="dark"] {
+//   --pmu-bg-primary: #{$dark-bg-primary};
+//   --pmu-bg-secondary: #{$dark-bg-secondary};
+//   --pmu-text-primary: #{$dark-text-primary};
+//   // ... etc
+// }
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $text-primary;
+  background-color: $bg-primary;
+  margin: 0;
+  padding: 0;
+}
+
+// ============================================================================
+// TYPOGRAPHY
+// ============================================================================
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-top: 0;
+  margin-bottom: $spacing-md;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+}
+
+h1 {
+  font-size: $font-size-4xl;
+}
+h2 {
+  font-size: $font-size-3xl;
+}
+h3 {
+  font-size: $font-size-2xl;
+}
+h4 {
+  font-size: $font-size-xl;
+}
+h5 {
+  font-size: $font-size-lg;
+}
+h6 {
+  font-size: $font-size-base;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: $spacing-md;
+  color: $text-secondary;
+}
+
+a {
+  color: $primary-500;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $primary-600;
+    text-decoration: underline;
+  }
+
+  &:focus {
+    outline: 2px solid $primary-500;
+    outline-offset: 2px;
+  }
+}
+
+// ============================================================================
+// UTILITY CLASSES
+// ============================================================================
+
+// Container
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $spacing-lg;
+  padding-right: $spacing-lg;
+}
+
+// Card
+.card {
+  background-color: $bg-primary;
+  border: 1px solid $border-color;
+  border-radius: $radius-xl;
+  padding: $spacing-lg;
+  box-shadow: $shadow-sm;
+
+  &:hover {
+    box-shadow: $shadow-md;
+  }
+}
+
+// Page Section - Reusable dark container for forms/content
+.pmu-page-section {
+  background: rgba($black, 0.8);
+  padding: $spacing-lg;
+  border-radius: $radius-2xl;
+  backdrop-filter: blur(10px);
+}
+
+// Dark Theme - For any dark background container (modals, sections, etc.)
+.pmu-dark-theme {
+  // Override form labels to white for dark backgrounds
+  .pmu-form-group label {
+    color: $white;
+  }
+
+  .pmu-form-check label {
+    color: $white;
+  }
+
+  // Fix subtitle and secondary text colors in dark theme
+  .pmu-subtitle {
+    color: $gray-300;
+  }
+
+  p {
+    color: $gray-300;
+  }
+}
+
+// Action Buttons - Vertical stack of buttons
+.pmu-action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  margin-top: $spacing-lg;
+
+  .pmu-btn {
+    width: 100%;
+  }
+}
+
+// Text Utilities
+.text-center {
+  text-align: center;
+}
+.text-left {
+  text-align: left;
+}
+.text-right {
+  text-align: right;
+}
+
+.text-primary {
+  color: $primary-500;
+}
+.text-secondary {
+  color: $text-secondary;
+}
+.text-success {
+  color: $success-500;
+}
+.text-warning {
+  color: $warning-500;
+}
+.text-danger {
+  color: $danger-500;
+}
+
+// Width Utilities
+.w-100 {
+  width: 100%;
+}
+.w-75 {
+  width: 75%;
+}
+.w-50 {
+  width: 50%;
+}
+.w-25 {
+  width: 25%;
+}
+
+// Display Utilities
+.d-block {
+  display: block;
+}
+.d-inline-block {
+  display: inline-block;
+}
+.d-flex {
+  display: flex;
+}
+
+// Spacing Utilities - Generated with SCSS loop
+$spacing-values: (
+  0: 0,
+  1: $spacing-xs,
+  2: $spacing-sm,
+  3: $spacing-md,
+  4: $spacing-lg,
+  5: $spacing-xl,
+);
+
+@each $key, $value in $spacing-values {
+  .mt-#{$key} {
+    margin-top: $value;
+  }
+  .mb-#{$key} {
+    margin-bottom: $value;
+  }
+}
+
+// ============================================================================
+// HERO SECTION (Background)
+// ============================================================================
+
+.pmu-hero {
+  min-height: 100vh;
+  background: url("/images/hero-highway.jpg") center center/cover no-repeat;
+  background-image: linear-gradient(rgba($black, 0.5), rgba($black, 0.7)),
+    url("/images/hero-highway.jpg");
+  display: flex;
+  flex-direction: column;
+}
+
+// ============================================================================
+// NAVBAR
+// ============================================================================
+
+.navbar {
+  background: linear-gradient(135deg, $navy-600 0%, $navy-700 100%);
+  padding: $spacing-md $spacing-xl;
+  box-shadow: $shadow-lg;
+
+  .app-logo {
+    height: 40px;
+    filter: brightness(0) invert(1);
+  }
+
+  .brand-text {
+    font-size: $font-size-xl;
+    font-weight: $font-weight-bold;
+    margin-left: $spacing-sm;
+    color: $white;
+  }
+
+  // Trips tab button - extends .pmu-btn-warning
+  .trips-tab .pmu-btn {
+    background: $warning-500;
+    color: $black;
+
+    &:hover {
+      background: $warning-600;
+    }
+  }
+
+  // Profile button - extends .pmu-btn-primary
+  .pmu-btn-profile {
+    &:hover {
+      background: $primary-600;
+    }
+  }
+
+  @media (max-width: $breakpoint-md) {
+    flex-wrap: wrap;
+
+    .navbar-nav {
+      flex-direction: column !important;
+      gap: $spacing-sm;
+      margin-top: $spacing-md;
+      width: 100%;
+    }
+  }
+}
+
+// ============================================================================
+// FOOTER
+// ============================================================================
+
+.pmu-footer {
+  background: $black;
+  padding: $spacing-xl;
+  text-align: center;
+  color: $gray-500;
+  border-top: 1px solid $gray-800;
+}

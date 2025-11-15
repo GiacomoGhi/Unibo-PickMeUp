@@ -59,12 +59,7 @@ public partial class AuthController : Controller
                 IsPersistent = model.RememberMe,
             });
 
-        AlertHelper.AddSuccess(this, "Login effettuato con successo");
-        var redirectUrl = !string.IsNullOrWhiteSpace(model.ReturnUrl)
-            ? model.ReturnUrl
-            : Url.Action("Landing", "Home");
-
-        return ControllerResult.Success(new { redirectUrl });
+        return ControllerResult.Success();
     }
 
     [HttpPost]
@@ -88,7 +83,6 @@ public partial class AuthController : Controller
             return ControllerResult.Error(signUpResult.ErrorMessage);
         }
 
-        AlertHelper.AddSuccess(this, "Registrazione completata! Controlla la tua email per confermare il tuo account.");
         return ControllerResult.Success();
     }
 
@@ -107,7 +101,6 @@ public partial class AuthController : Controller
             return ControllerResult.Error(result.ErrorMessage);
         }
 
-            AlertHelper.AddSuccess(this, "Email di conferma inviata! Controlla la tua casella di posta.");
             return ControllerResult.Success();
     }
 
@@ -158,13 +151,7 @@ public partial class AuthController : Controller
                 ExpiresUtc = DateTimeOffset.UtcNow.AddMonths(3)
             });
 
-        AlertHelper.AddSuccess(this, "Login effettuato con successo!");
-
-        var redirectUrl = string.IsNullOrWhiteSpace(request.ReturnUrl)
-            ? Url.Action("Landing", "Home")
-            : request.ReturnUrl;
-
-        return ControllerResult.Success(new { redirectUrl });
+        return ControllerResult.Success();
     }
 
     [HttpPost]
@@ -187,7 +174,6 @@ public partial class AuthController : Controller
 
         if (!result.HasNonSuccessStatusCode)
         {
-            AlertHelper.AddSuccess(this, "Se l'email è registrata, riceverai le istruzioni per reimpostare la password.");
             return ControllerResult.Success();
         }
 

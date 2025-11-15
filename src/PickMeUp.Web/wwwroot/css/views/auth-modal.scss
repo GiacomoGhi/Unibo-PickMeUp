@@ -1,0 +1,70 @@
+// ============================================================================
+// AUTH MODAL SPECIFIC STYLES
+// Base modal styles come from components/modals.scss
+// ============================================================================
+
+.pmu-auth-modal {
+  // ==========================================================================
+  // GOOGLE SIGN-IN BUTTON
+  // ==========================================================================
+  .pmu-google-signin {
+    margin-bottom: $spacing-md;
+
+    #googleLoginBtn,
+    #googleSignupBtn {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+  }
+
+  // ==========================================================================
+  // DIVIDER
+  // ==========================================================================
+  .pmu-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: $spacing-md 0;
+    color: $gray-400;
+    font-size: $font-size-sm;
+
+    &::before,
+    &::after {
+      content: "";
+      flex: 1;
+      border-bottom: 1px solid $gray-600;
+    }
+
+    &::before {
+      margin-right: $spacing-sm;
+    }
+
+    &::after {
+      margin-left: $spacing-sm;
+    }
+  }
+
+  // ==========================================================================
+  // PASSWORD INPUT WITH TOGGLE
+  // ==========================================================================
+  .pmu-password-input {
+    position: relative;
+
+    .pmu-btn-toggle-password {
+      position: absolute;
+      right: $spacing-xs;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: $gray-500;
+      cursor: pointer;
+      padding: $spacing-xs;
+
+      &:hover {
+        color: $gray-700;
+      }
+    }
+  }
+}

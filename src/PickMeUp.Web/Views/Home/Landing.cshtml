@@ -4,47 +4,50 @@
     Layout = "_Layout";
 }
 
-<div class="landing-hero">
-    <div class="hero-content">
-        <h1 class="hero-title">Find your way</h1>
+<div class="pmu-landing">
+    <div class="pmu-content">
+        <h1 class="pmu-title">Find your way</h1>
         
-        <form id="searchForm" class="search-form">
-            <div class="form-group">
-                <label for="destination">La Tua Destinazione</label>
-                <input type="text" id="destination" name="destination" class="form-control" placeholder="Inserisci indirizzo" />
-            </div>
-            
-            <div class="form-group">
-                <label for="departure">Indirizzo di Partenza</label>
-                <input type="text" id="departure" name="departure" class="form-control" placeholder="Inserisci indirizzo" />
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="departureDate">Data partenza</label>
-                    <input type="date" id="departureDate" name="departureDate" class="form-control" />
+        <form id="searchForm" class="pmu-page-section pmu-dark-theme">
+                <div class="pmu-form-group">
+                    <label for="destination">La Tua Destinazione</label>
+                    <input type="text" id="destination" name="destination" class="pmu-form-control" placeholder="Inserisci indirizzo" />
                 </div>
                 
-                <div class="form-group">
-                    <label for="departureTime">Ora</label>
-                    <input type="time" id="departureTime" name="departureTime" class="form-control" />
+                <div class="pmu-form-group">
+                    <label for="departure">Indirizzo di Partenza</label>
+                    <input type="text" id="departure" name="departure" class="pmu-form-control" placeholder="Inserisci indirizzo" />
                 </div>
-            </div>
-            
-            <div class="action-buttons">
-                <button type="button" class="btn btn-primary btn-find-ride" onclick="handleFindRide()">
-                    Trova un Passaggio
-                </button>
-                <button type="button" class="btn btn-outline btn-add-trip" onclick="handleAddTrip()">
-                    Aggiungi un Viaggio
-                </button>
-            </div>
-        </form>
-    </div>
+                
+                <div class="pmu-form-row">
+                    <div class="pmu-form-group">
+                        <label for="departureDate">Data partenza</label>
+                        <input type="date" id="departureDate" name="departureDate" class="pmu-form-control" />
+                    </div>
+                    
+                    <div class="pmu-form-group">
+                        <label for="departureTime">Ora</label>
+                        <input type="time" id="departureTime" name="departureTime" class="pmu-form-control" />
+                    </div>
+                </div>
+                
+                <div class="pmu-action-buttons">
+                    <button type="button" class="pmu-btn pmu-btn-success" onclick="handleFindRide()">
+                        🚗 Trova un Passaggio
+                    </button>
+                    <button type="button" class="pmu-btn pmu-btn-primary pmu-outline" onclick="handleAddTrip()">
+                        ➕ Aggiungi un Viaggio
+                    </button>
+                </div>
+            </form>
+        </div>
 </div>
 
-<footer class="landing-footer">
-    <p>footer</p>
-</footer>
+@section scripts {
+    @* <script src="~/js/landing.js" asp-append-version="true"></script> *@
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=@Configuration["Authentication:Google:MapsApiKey"]&libraries=places&callback=initAutocomplete">
+    </script>
+}
 
 

@@ -1,0 +1,251 @@
+// ============================================================================
+// BUTTON COMPONENT
+// ============================================================================
+
+// Base Button
+.pmu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-xs;
+  padding: $spacing-xs $spacing-md;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-normal;
+  text-align: center;
+  text-decoration: none;
+  white-space: nowrap;
+  border: 2px solid transparent;
+  border-radius: $radius-lg;
+  cursor: pointer;
+  transition: all $transition-base;
+  user-select: none;
+
+  &:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 3px rgba($primary-500, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  // Icon support
+  i,
+  svg {
+    width: 1.25em;
+    height: 1.25em;
+  }
+}
+
+// ============================================================================
+// SIZE VARIANTS
+// ============================================================================
+
+.pmu-btn-sm {
+  padding: calc($spacing-xs / 2) $spacing-sm;
+  font-size: $font-size-sm;
+}
+
+.pmu-btn-lg {
+  padding: $spacing-sm $spacing-lg;
+  font-size: $font-size-lg;
+}
+
+// ============================================================================
+// BUTTON VARIANTS - Filled (Solid)
+// ============================================================================
+
+// Primary Button (Blue)
+.pmu-btn-primary {
+  color: $white;
+  background-color: $primary-500;
+  border-color: $primary-500;
+
+  &:hover:not(:disabled) {
+    background-color: $primary-600;
+    border-color: $primary-600;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $primary-700;
+    border-color: $primary-700;
+    transform: translateY(0);
+  }
+}
+
+// Neutral Button (Gray)
+.pmu-btn-neutral {
+  color: $text-primary;
+  background-color: $gray-100;
+  border-color: $gray-300;
+
+  &:hover:not(:disabled) {
+    background-color: $gray-200;
+    border-color: $gray-400;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $gray-300;
+    border-color: $gray-500;
+    transform: translateY(0);
+  }
+}
+
+// Success Button (Green)
+.pmu-btn-success {
+  color: $white;
+  background-color: $success-500;
+  border-color: $success-500;
+
+  &:hover:not(:disabled) {
+    background-color: $success-600;
+    border-color: $success-600;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $success-700;
+    border-color: $success-700;
+    transform: translateY(0);
+  }
+}
+
+// Warning Button (Orange)
+.pmu-btn-warning {
+  color: $white;
+  background-color: $warning-500;
+  border-color: $warning-500;
+
+  &:hover:not(:disabled) {
+    background-color: $warning-600;
+    border-color: $warning-600;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $warning-700;
+    border-color: $warning-700;
+    transform: translateY(0);
+  }
+}
+
+// Danger Button (Red)
+.pmu-btn-danger {
+  color: $white;
+  background-color: $danger-500;
+  border-color: $danger-500;
+
+  &:hover:not(:disabled) {
+    background-color: $danger-600;
+    border-color: $danger-600;
+    transform: translateY(-1px);
+    box-shadow: $shadow-md;
+  }
+
+  &:active:not(:disabled) {
+    background-color: $danger-700;
+    border-color: $danger-700;
+    transform: translateY(0);
+  }
+}
+
+// ============================================================================
+// BUTTON MODIFIER - Outline (Ghost)
+// ============================================================================
+
+// Outline modifier - makes any button variant outlined
+.pmu-btn.pmu-outline {
+  background-color: transparent;
+
+  // Primary with outline
+  &.pmu-btn-primary {
+    color: $primary-500;
+    border-color: $primary-500;
+
+    &:hover:not(:disabled) {
+      color: $white;
+      background-color: $primary-500;
+    }
+
+    &:active:not(:disabled) {
+      color: $white;
+      background-color: $primary-600;
+    }
+  }
+
+  // Neutral with outline
+  &.pmu-btn-neutral {
+    color: $text-primary;
+    border-color: $gray-300;
+
+    &:hover:not(:disabled) {
+      color: $text-primary;
+      background-color: $gray-100;
+      border-color: $gray-400;
+    }
+
+    &:active:not(:disabled) {
+      background-color: $gray-200;
+      border-color: $gray-500;
+    }
+  }
+
+  // Success with outline
+  &.pmu-btn-success {
+    color: $success-600;
+    border-color: $success-500;
+
+    &:hover:not(:disabled) {
+      color: $white;
+      background-color: $success-500;
+    }
+
+    &:active:not(:disabled) {
+      color: $white;
+      background-color: $success-600;
+    }
+  }
+
+  // Warning with outline
+  &.pmu-btn-warning {
+    color: $warning-600;
+    border-color: $warning-500;
+
+    &:hover:not(:disabled) {
+      color: $white;
+      background-color: $warning-500;
+    }
+
+    &:active:not(:disabled) {
+      color: $white;
+      background-color: $warning-600;
+    }
+  }
+
+  // Danger with outline
+  &.pmu-btn-danger {
+    color: $danger-600;
+    border-color: $danger-500;
+
+    &:hover:not(:disabled) {
+      color: $white;
+      background-color: $danger-500;
+    }
+
+    &:active:not(:disabled) {
+      color: $white;
+      background-color: $danger-600;
+    }
+  }
+}

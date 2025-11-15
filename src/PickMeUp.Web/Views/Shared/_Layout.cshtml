@@ -9,13 +9,12 @@
     @RenderSection("metas", false)
 }
 @section styles{
-    <link href="~/css/landing.css" asp-append-version="true" rel="stylesheet" />
     @RenderSection("styles", false)
 }
 
 <!-- Main Layout -->
-<div id="landingPage" class="landing-page">
-    <nav class="navbar navbar-dark landing-navbar">
+<div class="pmu-hero">
+    <nav class="navbar navbar-dark">
         <div class="container-fluid">
             <a class="navbar-brand" href="@Url.Action(MVC.Home.Landing())">
                 <img class="app-logo" src="~/images/app-logo.png" alt="Pick-me-UP" />
@@ -28,13 +27,13 @@
                 @if (isAuthenticated)
                 {
                     <div class="trips-tab me-3">
-                        <a href="@Url.Action(MVC.Home.Landing())" class="btn btn-warning">
+                        <a href="@Url.Action(MVC.Home.Landing())" class="pmu-btn pmu-btn-warning">
                             I Tuoi Viaggi
                         </a>
                     </div>
                     
                     <div class="dropdown">
-                        <button class="btn btn-profile dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        <button class="pmu-btn pmu-btn-primary pmu-btn-profile dropdown-toggle" type="button" data-bs-toggle="dropdown">
                             <i class="fa-solid fa-user"></i>
                             <span>@userEmail</span>
                         </button>
@@ -52,7 +51,7 @@
                 }
                 else
                 {
-                    <button class="btn btn-profile me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <button class="pmu-btn pmu-btn-primary pmu-btn-profile me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
                         <i class="fa-solid fa-user"></i>
                         <span>ACCEDI</span>
                     </button>
@@ -60,9 +59,13 @@
             </div>
         </div>
     </nav>
-    
+
     @RenderBody()
 </div>
+
+<footer class="pmu-footer">
+    <p>© 2025 PickMeUp - Find your way</p>
+</footer>
 
 @section googlehead{
     @RenderSection("googlehead", false)
@@ -81,3 +84,5 @@
 <partial name="Modals/_SignupModal" />
 <partial name="Modals/_ResetPasswordModal" />
 <partial name="Modals/_ResendConfirmationModal" />
+<partial name="Modals/_AccountActivationModal" />
+<partial name="Modals/_PasswordResetSentModal" />
