@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using PickMeUp.Core.Database;
 using PickMeUp.Core.Services.Auth;
 using PickMeUp.Core.Services.Email;
+using PickMeUp.Core.Services.GoogleRoutes;
 using PickMeUp.Core.Services.User;
 using PickMeUp.Core.Services.UserPickUpRequest;
 using PickMeUp.Core.Services.UserTravel;
@@ -22,11 +23,16 @@ public static class ConfigurationExtensions
     /// </summary>
     public static IServiceCollection AddPickMeUpCoreServices(this IServiceCollection services)
     {
+        // Http client factory
+        services.AddHttpClient();
+
+        // Pick me up core services
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserTravelService, UserTravelService>();
         services.AddScoped<IUserPickUpRequestService, UserPickUpRequestService>();
         services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<IGoogleRoutesService, GoogleRoutesService>();
 
         // Configure RazorLight engine for email templates
         var templatesPath = Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location)!, "Services", "Email", "Templates");

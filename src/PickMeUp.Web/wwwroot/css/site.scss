@@ -23,7 +23,9 @@
 @import "components/buttons.scss";
 @import "components/forms.scss";
 @import "components/modals.scss";
+@import "components/google-places.scss";
 
 // 5. PAGE-SPECIFIC STYLES
 @import "views/landing.scss";
 @import "views/auth-modal.scss";
+@import "views/travel.scss";

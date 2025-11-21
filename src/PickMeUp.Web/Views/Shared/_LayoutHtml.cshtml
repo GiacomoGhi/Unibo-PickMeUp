@@ -1,4 +1,7 @@
-﻿@inject Microsoft.Extensions.Configuration.IConfiguration Configuration
+﻿@using Microsoft.Extensions.Options
+@using PickMeUp.Core.Services.GoogleRoutes
+
+@inject IOptions<GoogleSettings> _googleSettings
 <!DOCTYPE html>
 <html lang="@this.CurrentCulture().Name" class="@ViewData["FullscreenClass"]">
 <head>
@@ -12,7 +15,7 @@
     <link href="~/css/bundle-global.css" asp-append-version="true" rel="stylesheet" />
     @RenderSection("styles", false)
 </head>
-<body data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(Configuration["Authentication:Google:ClientId"] ?? "")">
+<body data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(_googleSettings.Value.ClientId)">
     @RenderSection("googlebody", false)
     @RenderBody()
     <script type="text/javascript">

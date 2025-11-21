@@ -1,0 +1,51 @@
+@using Microsoft.Extensions.Options
+@using PickMeUp.Core.Services.GoogleRoutes
+@using PickMeUp.Web.Models.Travel
+
+@inject IOptions<GoogleSettings> _googleSettings
+
+@model TravelViewModel
+@{
+    ViewData["Title"] = "Ricerca Viaggi - Pick-me-UP";
+    Layout = "_Layout";
+}
+
+<div class="pmu-travel">
+    <div class="pmu-content">
+        <h1 class="pmu-title">Trova il tuo viaggio</h1>
+        
+        <div class="pmu-travel-info">
+            <div class="pmu-route-summary">
+                <div class="pmu-route-point">
+                    <i class="fa-solid fa-circle-dot"></i>
+                    <span>@Model.DepartureAddress</span>
+                </div>
+                <div class="pmu-route-arrow">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </div>
+                <div class="pmu-route-point">
+                    <i class="fa-solid fa-location-dot"></i>
+                    <span>@Model.DestinationAddress</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="map" class="pmu-map"></div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        window.routeData = @Json.Serialize(new {
+            origin = new { lat = Model.DepartureLat, lng = Model.DepartureLng },
+            destination = new { lat = Model.DestinationLat, lng = Model.DestinationLng },
+            encodedPolyline = Model.Route?.EncodedPolyline,
+            distanceMeters = Model.Route?.DistanceMeters,
+            durationSeconds = Model.Route?.DurationSeconds
+        });
+    </script>
+    <script src="~/js/travel.js" asp-append-version="true"></script>
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initMap">
+    </script>
+}

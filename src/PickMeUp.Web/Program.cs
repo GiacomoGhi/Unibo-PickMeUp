@@ -9,12 +9,14 @@ using PickMeUp.Core.Services.Email;
 using System.Globalization;
 using System.Linq;
 using PickMeUp.Web;
+using PickMeUp.Core.Services.GoogleRoutes;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.Configure<AppSettings>(builder.Configuration.GetSection("AppSettings"));
 builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<GoogleSettings>(builder.Configuration.GetSection("Authentication:Google"));
 
 // Pick me up database
 builder.Services.AddPickMeUpDatabase(builder.Configuration);

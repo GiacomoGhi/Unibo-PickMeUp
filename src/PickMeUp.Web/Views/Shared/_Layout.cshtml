@@ -1,6 +1,4 @@
-﻿@inject IHtmlLocalizer<PickMeUp.Web.SharedResource> SharedLocalizer
-@inject Microsoft.Extensions.Options.IOptions<AppSettings> appSettings
-@{
+﻿@{
     Layout = "_LayoutHtml";
     var isAuthenticated = User?.Identity?.IsAuthenticated == true;
     var userEmail = User?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
