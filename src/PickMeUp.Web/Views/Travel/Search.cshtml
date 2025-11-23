@@ -4,33 +4,41 @@
 
 @inject IOptions<GoogleSettings> _googleSettings
 
-@model TravelViewModel
+@model UserTravelViewModel
 @{
     ViewData["Title"] = "Ricerca Viaggi - Pick-me-UP";
     Layout = "_Layout";
 }
 
-<div class="pmu-travel">
-    <div class="pmu-content">
-        <h1 class="pmu-title">Trova il tuo viaggio</h1>
-        
-        <div class="pmu-travel-info">
-            <div class="pmu-route-summary">
-                <div class="pmu-route-point">
-                    <i class="fa-solid fa-circle-dot"></i>
-                    <span>@Model.DepartureAddress</span>
-                </div>
-                <div class="pmu-route-arrow">
-                    <i class="fa-solid fa-arrow-down"></i>
-                </div>
-                <div class="pmu-route-point">
-                    <i class="fa-solid fa-location-dot"></i>
-                    <span>@Model.DestinationAddress</span>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">Trova il tuo viaggio</h1>
+
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-circle-dot"></i>
+                        </div>
+                        <div class="col">
+                            <div class="text-truncate">@Model.DepartureAddress</div>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div class="col">
+                            <div class="text-truncate">@Model.DestinationAddress</div>
+                        </div>
+                    </div>
+
+                    <div id="map" style="height:520px; width:100%;"></div>
                 </div>
             </div>
         </div>
-
-        <div id="map" class="pmu-map"></div>
     </div>
 </div>
 

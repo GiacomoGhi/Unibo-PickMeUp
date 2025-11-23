@@ -6,60 +6,62 @@
 @{
     ViewData["Title"] = "Pick-me-UP - Find your way";
     Layout = "_Layout";
+    var isAuthenticated = User?.Identity?.IsAuthenticated == true;
 }
 
-<div class="pmu-landing">
-    <div class="pmu-content">
-        <h1 class="pmu-title">Find your way</h1>
-        
-            <form id="searchApp" @@submit.prevent>
-                <div class="pmu-form-group">
-                    <div id="departure-container">
-                        <label for="departure-input">Indirizzo di Partenza</label>
-                    </div>
-                    <div class="invalid-feedback" v-if="state.submitted && !isDepartureValid">
-                        Seleziona un punto di partenza dai suggerimenti
-                    </div>
+<div class="container my-auto">
+    <h1 class="text-center mb-4">Find your way</h1>
+
+    <form id="searchApp" v-on:submit.prevent>
+        <div class="row justify-content-center mb-3">
+            <div class="col-12 col-md-6 mb-3">
+                <label for="departure-autocomplete" class="form-label">Partenza</label>
+                <div id="departure-container"></div>
+                <div class="invalid-feedback" v-if="state.submitted && !isDepartureValid">
+                    Seleziona un punto di partenza dai suggerimenti
                 </div>
-                
-                <div class="pmu-form-group">
-                    <div id="destination-container">
-                        <label for="destination-input">La Tua Destinazione</label>
-                    </div>
-                    <div class="invalid-feedback" v-if="state.submitted && !isDestinationValid">
-                        Seleziona una destinazione dai suggerimenti
-                    </div>
+            </div>
+
+            <div class="col-12 col-md-6 mb-3">
+                <label for="destination-autocomplete" class="form-label">Destinazione</label>
+                <div id="destination-container"></div>
+                <div class="invalid-feedback" v-if="state.submitted && !isDestinationValid">
+                    Seleziona una destinazione dai suggerimenti
                 </div>
-                
-                <div class="pmu-form-row">
-                    <div class="pmu-form-group">
-                        <label for="departureDate">Data partenza</label>
-                        <input type="date" 
-                               id="departureDate" 
-                               v-model="state.departureDate"
-                               class="pmu-form-control" />
-                    </div>
-                    
-                    <div class="pmu-form-group">
-                        <label for="departureTime">Ora</label>
-                        <input type="time" 
-                               id="departureTime" 
-                               v-model="state.departureTime"
-                               class="pmu-form-control" />
-                    </div>
-                </div>
-                
-                <div class="pmu-action-buttons">
-                    <button type="button" class="pmu-btn pmu-btn-success" @@click="handleFindRide">
-                        🚗 Trova un Passaggio
-                    </button>
-                    <button type="button" class="pmu-btn pmu-btn-primary pmu-outline" @@click="handleAddTrip">
-                        ➕ Aggiungi un Viaggio
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-7 col-md-3 mb-3">
+                <label for="departureDate" class="form-label">Data partenza</label>
+                <input type="date"
+                       id="departureDate"
+                       v-model="state.departureDate"
+                       class="form-control" />
+            </div>
+
+            <div class="col-7 col-md-3 mb-3">
+                <label for="departureTime" class="form-label">Ora</label>
+                <input type="time"
+                       id="departureTime"
+                       v-model="state.departureTime"
+                       class="form-control" />
+            </div>
+        </div>
+
+        <div class="row justify-content-center gap-4">
+            <div class="col-12 d-flex justify-content-center">
+                <button type="button" class="btn btn-success w-auto" v-on:click="handleFindRide">
+                    🚗 Trova un Passaggio
+                </button>
+            </div>
+            <div class="col-12 d-flex justify-content-center">
+                <button type="button" class="btn btn-primary w-auto" v-on:click="handleAddTrip">
+                    ➕ Aggiungi un Viaggio
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 @section scripts {
@@ -69,5 +71,3 @@
             src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initVueApp">
     </script>
 }
-
-

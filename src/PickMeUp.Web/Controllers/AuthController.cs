@@ -45,7 +45,8 @@ public partial class AuthController : Controller
         
         var claims = new List<Claim>
         {
-            new(ClaimTypes.NameIdentifier, loginResult.Data!.UserId.ToString()),
+            new(ClaimTypes.Name, loginResult.Data!.UserFirstName),
+            new(ClaimTypes.NameIdentifier, loginResult.Data.UserId.ToString()),
             new(ClaimTypes.Email, loginResult.Data.UserEmail)
         };
 
@@ -160,6 +161,18 @@ public partial class AuthController : Controller
         HttpContext.SignOutAsync();
         AlertHelper.AddSuccess(this, "Utente scollegato correttamente");
         return RedirectToAction("Landing", "Home");
+    }
+
+    [HttpGet]
+    public virtual IActionResult CurrentUser()
+    {
+        var isAuth = User?.Identity?.IsAuthenticated == true;
+        var firstName = User?.FindFirst(ClaimTypes.Name)?.Value;
+
+        return Json(new {
+            isAuthenticated = isAuth,
+            firstName = firstName ?? string.Empty
+        });
     }
 
     [HttpPost]

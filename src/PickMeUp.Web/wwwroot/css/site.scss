@@ -1,31 +1,147 @@
-﻿// ============================================================================
-// PICKMEUP - MAIN STYLESHEET
-// ============================================================================
-// This is the main entry point for all styles. Compilation order matters:
-// 1. Import custom variables (which includes Bootstrap functions & variables)
-// 2. Import Bootstrap SCSS (uses our overridden variables)
-// 3. Import custom components and layouts
-// 4. Import page-specific styles
-// ============================================================================
+﻿// Variables
+@import "../../node_modules/bootstrap/scss/functions";
 
-// 1. VARIABLES & DESIGN TOKENS
-// Import our custom variables first (includes Bootstrap integration)
-@import "site.variables.scss";
+// Enable Bootstrap dark mode support and use the `data` strategy so
+// compiled CSS contains rules for `[data-bs-theme="dark"]`.
+$enable-dark-mode: true;
+$color-mode-type: data;
 
-// 2. BOOTSTRAP FRAMEWORK
-// Import full Bootstrap using our customized variables
+// Import full Bootstrap (it will import variables/maps after our overrides)
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
 
-// 3. LAYOUT & BASE STYLES
-@import "site.layout.scss";
+// Root site styles
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-// 4. COMPONENT STYLES
-@import "components/buttons.scss";
-@import "components/forms.scss";
-@import "components/modals.scss";
-@import "components/google-places.scss";
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  margin: 0;
+  padding: 0;
+}
 
-// 5. PAGE-SPECIFIC STYLES
-@import "views/landing.scss";
-@import "views/auth-modal.scss";
-@import "views/travel.scss";
+// Custom styles
+// @import "site.layout.scss";
+
+// // 4. COMPONENT STYLES
+// @import "components/buttons.scss";
+// @import "components/forms.scss";
+// @import "components/modals.scss";
+// @import "components/google-places.scss";
+
+// // 5. PAGE-SPECIFIC STYLES
+// @import "views/landing.scss";
+// @import "views/auth-modal.scss";
+// @import "views/travel.scss";
+
+// Password strength UI compatibility for legacy JS
+#pmu-form-group,
+.pmu-form-group {
+  position: relative;
+  /* small right padding to separate from modal edge */
+  padding-right: 12px;
+}
+
+#signupPasswordStrength {
+  position: static;
+  transform: none;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+}
+
+/* dots: remove badge spacing and ensure perfect circle */
+/* dots: remove badge spacing and ensure perfect circle */
+#signupPasswordStrength .pmu-strength-dot,
+.pmu-strength-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  padding: 0 !important;
+  margin: 0 6px;
+  border-radius: 50% !important;
+  background-color: var(--bs-secondary);
+  box-shadow: none !important;
+  line-height: 0; /* remove baseline gap */
+  font-size: 0; /* remove any badge text spacing */
+  vertical-align: middle;
+}
+
+.pmu-strength-dot.valid {
+  background-color: var(--bs-success) !important;
+}
+
+.pmu-strength-dot.invalid {
+  background-color: var(--bs-danger) !important;
+}
+
+.pmu-password-info-btn {
+  cursor: pointer;
+  color: var(--bs-info);
+}
+
+.pmu-requirement.valid {
+  color: var(--bs-success);
+  font-weight: 600;
+}
+
+.pmu-requirement.invalid {
+  color: var(--bs-danger);
+}
+
+/* Small tweak so the strength container does not push layout in small screens */
+@media (max-width: 576px) {
+  .pmu-form-group {
+    padding-right: 12px;
+  }
+
+  #signupPasswordStrength {
+    position: static;
+    margin-bottom: 0.5rem;
+  }
+}
+
+/* Requirements popup: overlay anchored to the pmu-form-group (desktop)
+   and fallback to static flow on small screens */
+
+.pmu-info-wrap {
+  position: relative;
+}
+
+.pmu-requirements-popup {
+  position: absolute;
+  /* anchor the popup above the info button */
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 280px;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  display: none; /* shown by JS */
+  z-index: 1200;
+}
+
+.pmu-requirements-popup .pmu-requirement {
+  display: block;
+  margin: 0.25rem 0;
+}
+
+@media (max-width: 576px) {
+  .pmu-requirements-popup {
+    position: static;
+    width: auto;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+    margin-top: 0.5rem;
+  }
+}

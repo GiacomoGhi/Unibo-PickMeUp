@@ -23,11 +23,6 @@ internal class UserPickUpRequest
     public int UserTravelId { get; set; }
 
     /// <summary>
-    /// Date and time for the pick up.
-    /// </summary>
-    public DateTime PickUpDateTime { get; set; }
-
-    /// <summary>
     /// Latitude coordinate of the pick up point location.
     /// </summary>
     public double PickUpPointLatitude { get; set; }
@@ -41,17 +36,6 @@ internal class UserPickUpRequest
     /// Address of the pick up point location.
     /// </summary>
     public string PickUpPointAddress { get; set; } = default!;
-
-    /// <summary>
-    /// Distance in kilometers from the pick up point to the destination.
-    /// </summary>
-    public decimal PickUpPointToDestinationDistanceInKm { get; set; }
-
-    /// <summary>
-    /// Costs refund for the pick up that the user will pay to
-    /// the driver.
-    /// </summary>
-    public decimal CostsRefund { get; set; }
 
     /// <summary>
     /// Status of the pick up request.

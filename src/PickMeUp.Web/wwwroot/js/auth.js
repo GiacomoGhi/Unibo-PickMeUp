@@ -249,19 +249,56 @@ function handleAddTrip() {
 
 // Update UI elements after login without page reload
 function updateAuthUI() {
-  // Update navigation, profile elements, etc.
-  const userNav = document.querySelector(".pmu-user-nav");
-  const authButtons = document.querySelector(".pmu-auth-buttons");
+  // Replace the auth area by asking the server who is the current user.
+  // This ensures the server-side cookie is used and we get the correct name.
+  fetch("/Auth/CurrentUser", { credentials: "same-origin" })
+    .then((r) => r.json())
+    .then((data) => {
+      const authSection = document.getElementById("authSection");
+      if (!authSection) return;
 
-  if (userNav) {
-    userNav.style.display = "block";
-  }
-  if (authButtons) {
-    authButtons.style.display = "none";
-  }
+      if (data && data.isAuthenticated) {
+        // Render a simple dropdown matching the server-side layout
+        authSection.innerHTML = `
+          <div class="dropdown">
+            <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
+              <img src="/images/avatar.png" alt="Avatar" style="height: 80px;" />
+              <p class="fs-3 fw-bold m-0">${escapeHtml(
+                data.firstName || ""
+              )}</p>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserActions">
+              <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Log out</a></li>
+            </ul>
+          </div>
+        `;
+      } else {
+        authSection.innerHTML = `
+          <button id="loginTriggerBtn" class="btn p-0 d-flex flex-column align-items-center bg-transparent" data-bs-toggle="modal" data-bs-target="#loginModal">
+            <img src="/images/avatar.png" alt="Login" style="height: 80px;" />
+            <p class="fs-3 fw-bold m-0">Accedi</p>
+          </button>
+        `;
+      }
 
-  // Dispatch custom event that other scripts can listen to
-  window.dispatchEvent(new CustomEvent("userLoggedIn"));
+      // Mark local state and notify listeners
+      isAuthenticated = !!(data && data.isAuthenticated);
+      window.dispatchEvent(new CustomEvent("userLoggedIn"));
+    })
+    .catch((err) => {
+      console.error("Failed to refresh auth UI:", err);
+    });
+}
+
+// Minimal HTML-escape helper for insertion into template strings
+function escapeHtml(unsafe) {
+  if (!unsafe) return "";
+  return String(unsafe)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // Initialize everything on window load

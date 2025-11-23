@@ -39,6 +39,8 @@ function initVueApp() {
         });
         departureAutocomplete.id = "departure-autocomplete";
         departureAutocomplete.placeholder = "Inserisci indirizzo di partenza";
+        // Ensure autocomplete element gets Bootstrap form styling
+        departureAutocomplete.className = "form-control";
         document
           .getElementById("departure-container")
           .appendChild(departureAutocomplete);
@@ -55,6 +57,8 @@ function initVueApp() {
         destinationAutocomplete.id = "destination-autocomplete";
         destinationAutocomplete.placeholder =
           "Inserisci indirizzo di destinazione";
+        // Ensure autocomplete element gets Bootstrap form styling
+        destinationAutocomplete.className = "form-control";
         document
           .getElementById("destination-container")
           .appendChild(destinationAutocomplete);
@@ -167,7 +171,7 @@ function initVueApp() {
         window.location.href = `/Travel/Search?${params.toString()}`;
       };
 
-      const handleAddTrip = () => {
+      const handleAddTrip = async () => {
         if (typeof isAuthenticated !== "undefined" && !isAuthenticated) {
           utilities.alertError(
             "Devi effettuare l'accesso per aggiungere un viaggio",
@@ -186,8 +190,39 @@ function initVueApp() {
           return;
         }
 
-        sessionStorage.setItem("newTripData", JSON.stringify(searchData));
-        window.location.href = "/Trip/Create"; // Reindirizzamento diretto
+        // Prepare payload matching query-string used in handleFindRide
+        const payload = {
+          DeparturePlaceId: searchData.departure.placeId,
+          DepartureAddress: searchData.departure.formattedAddress,
+          DepartureLat: searchData.departure.coordinates.lat,
+          DepartureLng: searchData.departure.coordinates.lng,
+          DestinationPlaceId: searchData.destination.placeId,
+          DestinationAddress: searchData.destination.formattedAddress,
+          DestinationLat: searchData.destination.coordinates.lat,
+          DestinationLng: searchData.destination.coordinates.lng,
+          DepartureDate: searchData.departureDate || null,
+          DepartureTime: searchData.departureTime || null,
+          Timestamp: searchData.timestamp || new Date().toISOString(),
+        };
+
+        try {
+          const result = await utilities.postJsonT("/Travel/Edit", payload);
+          // If controller returns a standard ControllerResult
+          if (result && result.isSuccess) {
+            utilities.alertSuccess("Viaggio creato (richiesta inviata)", 2500);
+            // Redirect to the newly created travel page
+            window.location.href = `/Travel/Travel?travelId=${result.data.travelId}`;
+          } else {
+            // Show server-provided error if present
+            const msg =
+              (result && result.errorMessage) ||
+              "Errore durante la creazione del viaggio";
+            utilities.alertError(msg, 3000);
+          }
+        } catch (err) {
+          console.error("Add trip error:", err);
+          utilities.alertError("Errore di connessione. Riprova.", 3000);
+        }
       };
 
       // -- WATCHERS --

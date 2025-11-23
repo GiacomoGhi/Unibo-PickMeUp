@@ -1,0 +1,206 @@
+@using Microsoft.Extensions.Options
+@using PickMeUp.Core.Services.GoogleRoutes
+@using PickMeUp.Enums.UserPickUpRequest
+@using PickMeUp.Web.Models.Travel
+
+@inject IOptions<GoogleSettings> _googleSettings
+@inject Microsoft.AspNetCore.Mvc.IUrlHelper Url
+
+@model UserTravelViewModel
+@{
+    ViewData["Title"] = "Viaggio Pick-me-UP";
+    Layout = "_Layout";
+    var currentUserId = int.TryParse(
+        this.User!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, 
+        out var userId) ? userId : (int?)null;
+
+    var isOwner = currentUserId.HasValue && currentUserId.Value == Model.UserId;
+    
+    var requestsStoreByStatus = Model.PickUpRequests
+        .GroupBy(r => r.Status)
+        .ToDictionary(g => g.Key, g => g.ToList());
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">
+                        @(isOwner ? "Gestisci il tuo viaggio" : $"Viaggio di {Model.UserNominative}" )
+                    </h1>
+
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-circle-dot"></i>
+                        </div>
+                        <div class="col">
+                            <div class="text-truncate">@Model.DepartureAddress</div>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-arrow-down"></i>
+                        </div>
+                        <div class="col-auto text-muted">
+                            <i class="fa-solid fa-location-dot"></i>
+                        </div>
+                        <div class="col">
+                            <div class="text-truncate">@Model.DestinationAddress</div>
+                        </div>
+                    </div>
+
+                    @* Pick-up requests *@
+                    <div class="row mb-4">
+                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
+                            Visualizza richieste di pick-up
+                            @if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Pending, out var pendingRequests) && isOwner)
+                            {
+                                <span class="badge bg-warning">@pendingRequests.Count</span>
+                            }
+                        </button>
+                    </div>
+
+                    <div id="map" style="height:520px; width:100%;"></div>
+
+                    @if (!isOwner)
+                    {
+                        <div class="row mt-4">
+                            <label for="location-autocomplete" class="form-label">Luogo di Pick-Up</label>
+                            <div id="location-container"></div>
+                            <div class="invalid-feedback" v-if="state.submitted && !isLocationValid">
+                                Seleziona un indirizzo dai suggerimenti
+                            </div>
+                        </div>
+                        <div class="row">
+                            <button type="button" class="btn btn-primary mt-3 col-auto" v-on:click="handleRequestPickUp(@Model.UserTravelId)">
+                                Richiedi Pick-Up
+                            </button>
+                        </div>
+                    }
+                    else
+                    {
+                        <button type="button" class="btn btn-danger mt-3 col-auto">
+                            Annulla Viaggio
+                        </button>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pick up requests modal -->
+<div class="modal fade" id="pickUpRequestsModal" tabindex="-1" aria-labelledby="pickUpRequestsModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pickUpRequestsModalLabel">Richieste di pick-up</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body gap-3">
+                @if (Model.PickUpRequests.Length == 0)
+                {
+                    <p class="text-center text-muted">Nessuna richiesta di pick-up al momento.</p>
+                }
+                else
+                {
+                    @* Accepted requests *@
+                    if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Accepted, out var acceptedRequests))
+                    {
+                        <div class="row">
+                            <p class="row h6">Richieste accettate:</p>
+                            @foreach (var request in acceptedRequests)
+                            {
+                                <div class="row mb-3 p-3 border rounded">
+                                    <h6 class="mb-1">@request.UserNominative</h6>
+                                    <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
+                                    @* TODO add time *@
+                                    <p class="mb-1">Ore: --:--</p> 
+                                </div>
+                            }
+                        </div>
+                    }
+                    @* Pending requests *@
+                    if (isOwner)
+                    {
+                        if (pendingRequests is not null)
+                        {
+                            <div class="row">
+                                <p class="row h6">Richieste in attesa:</p>
+                                @foreach (var request in pendingRequests)
+                                {
+                                    <div class="row">
+                                        <div class="row p-3 border rounded">
+                                            <h6 class="mb-1">@request.UserNominative</h6>
+                                            <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
+                                            @* TODO add time *@
+                                            <p class="mb-1">Ore: --:--</p> 
+                                        </div>
+                                        <div class="row justify-content-end">
+                                            @* Reject action *@
+                                            <div class="col-auto">
+                                                <form asp-controller="Travel" asp-action="EditPickUpRequestStatus" method="post" class="d-inline">
+                                                    <input type="hidden" name="travelId" value="@Model.UserTravelId" />
+                                                    <input type="hidden" name="pickUpRequestId" value="@request.PickUpRequestId" />
+                                                    <input type="hidden" name="status" value="@((int)UserPickUpRequestStatus.Rejected)" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Rifiuta</button>
+                                                </form>
+                                            </div>
+                                            @* Accept action *@
+                                            <div class="col-auto">
+                                                <form asp-controller="Travel" asp-action="EditPickUpRequestStatus" method="post" class="d-inline">
+                                                    <input type="hidden" name="travelId" value="@Model.UserTravelId" />
+                                                    <input type="hidden" name="pickUpRequestId" value="@request.PickUpRequestId" />
+                                                    <input type="hidden" name="status" value="@((int)UserPickUpRequestStatus.Accepted)" />
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">Accetta</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        @* Rejected requests *@
+                        if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Rejected, out var rejectedRequests))
+                        {
+                            <div class="row">
+                                <p class="row h6">Richieste rifiutate:</p>
+                                @foreach (var request in rejectedRequests)
+                                {
+                                    <div class="row mb-3 p-3 border rounded">
+                                        <h6 class="mb-1">@request.UserNominative</h6>
+                                        <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
+                                        @* TODO add time *@
+                                        <p class="mb-1">Ore: --:--</p> 
+                                    </div>
+                                }
+                            </div>
+                        }
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script>
+        window.routeData = @Json.Serialize(new {
+            origin = new { lat = Model.DepartureLat, lng = Model.DepartureLng },
+            destination = new { lat = Model.DestinationLat, lng = Model.DestinationLng },
+            encodedPolyline = Model.Route?.EncodedPolyline,
+            distanceMeters = Model.Route?.DistanceMeters,
+            durationSeconds = Model.Route?.DurationSeconds,
+            pickUpRequests = Model.PickUpRequests
+                .Select(pickUnRequest => new {
+                    pickUnRequest.UserNominative,
+                    pickUnRequest.PickUpPointAddress,
+                    pickUnRequest.Status,
+                    location = new { lat = pickUnRequest.Location.Latitude, lng = pickUnRequest.Location.Longitude },
+                }).ToArray(),
+        });
+    </script>
+    <script src="~/js/travel.js" asp-append-version="true"></script>
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initMap">
+    </script>
+}

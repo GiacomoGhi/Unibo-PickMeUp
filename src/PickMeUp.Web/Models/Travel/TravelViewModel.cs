@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace PickMeUp.Web.Models.Travel;
@@ -9,8 +10,16 @@ public class TravelRouteInfoViewModel
     public long DurationSeconds { get; set; }
 }
 
-public class TravelViewModel
+public class UserTravelViewModel
 {
+    public string? UserNominative { get; set; }
+
+    [Required]
+    public int UserId { get; set; }
+
+    [Required]
+    public int UserTravelId { get; set; }
+
     [Required]
     public string DeparturePlaceId { get; set; } = default!;
 
@@ -22,6 +31,12 @@ public class TravelViewModel
 
     [Required]
     public double DepartureLng { get; set; }
+
+    [Required]
+    public DateOnly DepartureDate { get; set; }
+
+    [Required]
+    public TimeOnly DepartureTime { get; set; }
 
     [Required]
     public string DestinationPlaceId { get; set; } = default!;
@@ -36,4 +51,6 @@ public class TravelViewModel
     public double DestinationLng { get; set; }
 
     public TravelRouteInfoViewModel? Route { get; set; }
+
+    public PickUpRequestViewModel[] PickUpRequests { get; set; } = [];
 }

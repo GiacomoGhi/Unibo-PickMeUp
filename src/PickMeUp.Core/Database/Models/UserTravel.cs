@@ -62,11 +62,6 @@ internal class UserTravel
     public string DestinationAddress { get; set; } = default!;
 
     /// <summary>
-    /// Date and time of arrival.
-    /// </summary>
-    public DateTime ArrivalDateTime { get; set; }
-
-    /// <summary>
     /// Date and time when this travel was deleted.
     /// </summary>
     public DateTime? DeletionDateTime { get; set; }

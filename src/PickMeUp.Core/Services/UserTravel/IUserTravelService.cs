@@ -8,7 +8,7 @@ public interface IUserTravelService
     /// <summary>
     /// Provides a list of user travels according to the specified parameters.
     /// </summary>
-    public Task<Result<ListItemsResult<ListUserTravel>>> ListUserTravelAsync(ListItemsParams requestParams);
+    public Task<Result<ListItemsResult<UserTravelList>>> ListUserTravelAsync(ListItemsParams requestParams);
 
     /// <summary>
     /// Returns a user travel.
@@ -18,7 +18,7 @@ public interface IUserTravelService
     /// <summary>
     /// Edits the requested user travel.
     /// </summary>
-    public Task<Result> EditUserTravelAsync(EditEntityParams<UserTravel> requestParams);
+    public Task<Result<EditEntityResult<int>>> EditUserTravelAsync(EditEntityParams<UserTravel> requestParams);
 
     /// <summary>
     /// Deletes the requested user travel.
