@@ -2,7 +2,7 @@
 
 namespace PickMeUp.Core.Services.UserTravel;
 
-public class ListUserTravel
+public class UserTravelList
 {
     /// <summary>
     /// User travel identifier.
@@ -25,16 +25,6 @@ public class ListUserTravel
     public int OccupiedPassengerSeatsCount { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the departure location.
-    /// </summary>
-    public double DepartureLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the departure location.
-    /// </summary>
-    public double DepartureLongitude { get; set; }
-
-    /// <summary>
     /// Address of the departure location.
     /// </summary>
     public string DepartureAddress { get; set; } = default!;
@@ -45,22 +35,7 @@ public class ListUserTravel
     public DateTime DepartureDateTime { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the destination location.
-    /// </summary>
-    public double DestinationLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the destination location.
-    /// </summary>
-    public double DestinationLongitude { get; set; }
-
-    /// <summary>
     /// Address of the destination location.
     /// </summary>
     public string DestinationAddress { get; set; } = default!;
-
-    /// <summary>
-    /// Date and time of arrival.
-    /// </summary>
-    public DateTime ArrivalDateTime { get; set; }
 }

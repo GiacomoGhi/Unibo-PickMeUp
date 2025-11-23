@@ -11,6 +11,11 @@ public class UserTravel
     public int UserTravelId { get; set; }
 
     /// <summary>
+    /// User identifier of the user that created the travel.
+    /// </summary>
+    public int OwnerUserId { get; set; }
+
+    /// <summary>
     /// Nominative of the user that created the travel.
     /// </summary>
     public string UserNominative { get; set; } = default!;
@@ -59,11 +64,6 @@ public class UserTravel
     /// Address of the destination location.
     /// </summary>
     public string DestinationAddress { get; set; } = default!;
-
-    /// <summary>
-    /// Date and time of arrival at the destination.
-    /// </summary>
-    public DateTime ArrivalDateTime { get; set; }
 
     /// <summary>
     /// Pick up requests associated with this travel.

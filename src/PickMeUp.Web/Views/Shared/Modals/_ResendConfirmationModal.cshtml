@@ -1,6 +1,6 @@
 @inject Microsoft.AspNetCore.Mvc.IUrlHelper Url
 <!-- Resend Confirmation Modal - Bootstrap Standard -->
-<div class="modal fade pmu-modal pmu-modal-dark pmu-auth-modal pmu-dark-theme" id="resendModal" tabindex="-1" aria-labelledby="resendModalLabel" aria-hidden="true">
+<div class="modal fade" id="resendModal" tabindex="-1" aria-labelledby="resendModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,20 +8,23 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="pmu-subtitle text-center">Inserisci la tua email per ricevere nuovamente il link di conferma.</p>
+                <p class="text-center text-muted">Inserisci la tua email per ricevere nuovamente il link di conferma.</p>
                 
-                <form id="resendForm" data-url="@Url.Action("ResendConfirmation", "Auth")">
-                    <div class="pmu-form-group">
-                        <label for="resendEmail">Email</label>
-                        <input type="email" class="pmu-form-control" id="resendEmail" name="Email" placeholder="tua@email.com" required />
+                <form id="resendForm" asp-controller="Auth" asp-action="ResendConfirmation" method="post" data-url="@Url.Action("ResendConfirmation", "Auth")">
+                    @Html.AntiForgeryToken()
+                    <div class="mb-3">
+                        <label for="resendEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="resendEmail" name="Email" placeholder="tua@email.com" required />
                     </div>
                     
-                    <button type="submit" class="pmu-btn pmu-btn-primary">Reinvia Email</button>
+                    <button type="submit" class="btn btn-primary">Reinvia Email</button>
                 </form>
                 
-                <a href="#" class="pmu-link-secondary text-center" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">
-                    Torna al login
-                </a>
+                <div class="text-center mt-3">
+                    <a href="#" class="link-secondary" data-bs-toggle="modal" data-bs-target="#loginModal" data-bs-dismiss="modal">
+                        Torna al login
+                    </a>
+                </div>
             </div>
         </div>
     </div>

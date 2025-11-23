@@ -11,11 +11,23 @@
     <meta name="description" content="@ViewData["Description"]">
     @RenderSection("googlehead", false)
     @RenderSection("metas", false)
+    <script>
+        // Apply theme from browser preference before CSS loads to avoid FOUC
+        (function() {
+            try {
+                var prefersLight = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches;
+                var theme = prefersLight ? 'light' : 'dark';
+                document.documentElement.setAttribute('data-bs-theme', theme);
+            } catch (e) {
+                // ignore
+            }
+        })();
+    </script>
     <link href="~/node_modules/@@fortawesome/fontawesome-free/css/all.min.css" asp-append-version="true" rel="stylesheet" />
     <link href="~/css/bundle-global.css" asp-append-version="true" rel="stylesheet" />
     @RenderSection("styles", false)
 </head>
-<body data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(_googleSettings.Value.ClientId)">
+<body class="d-flex flex-column min-vh-100" data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(_googleSettings.Value.ClientId)">
     @RenderSection("googlebody", false)
     @RenderBody()
     <script type="text/javascript">

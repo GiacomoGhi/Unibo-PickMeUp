@@ -14,17 +14,17 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
     private readonly PickMeUpDbContext _dbContext = dbContext;
 
     /// <inheritdoc/>
-    public async Task<Result<ListItemsResult<ListUserTravel>>> ListUserTravelAsync(ListItemsParams requestParams)
+    public async Task<Result<ListItemsResult<UserTravelList>>> ListUserTravelAsync(ListItemsParams requestParams)
     {
         // Validate parameters
-        if (requestParams.Skip < 0)
-        {
-            return Result.InvalidArgument(nameof(requestParams.Skip));
-        }
-        if (requestParams.Take < 1)
-        {
-            return Result.InvalidArgument(nameof(requestParams.Take));
-        }
+        // if (requestParams.Skip < 0)
+        // {
+        //     return Result.InvalidArgument(nameof(requestParams.Skip));
+        // }
+        // if (requestParams.Take < 1)
+        // {
+        //     return Result.InvalidArgument(nameof(requestParams.Take));
+        // }
 
         // Build query
         var query = _dbContext.UserTravels
@@ -37,26 +37,21 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
 
         // Get paginated results
         var items = await query
-            .Skip(requestParams.Skip)
-            .Take(requestParams.Take)
-            .Select(travel => new ListUserTravel
+            // .Skip(requestParams.Skip)
+            // .Take(requestParams.Take)
+            .Select(travel => new UserTravelList
             {
                 UserTravelId = travel.UserTravelId,
                 UserNominative = $"{travel.User.FirstName} {travel.User.LastName}",
                 TotalPassengersSeatsCount = travel.TotalPassengersSeatsCount,
                 OccupiedPassengerSeatsCount = travel.OccupiedPassengerSeatsCount,
-                DepartureLatitude = travel.DepartureLatitude,
-                DepartureLongitude = travel.DepartureLongitude,
                 DepartureAddress = travel.DepartureAddress,
                 DepartureDateTime = travel.DepartureDateTime,
-                DestinationLatitude = travel.DestinationLatitude,
-                DestinationLongitude = travel.DestinationLongitude,
                 DestinationAddress = travel.DestinationAddress,
-                ArrivalDateTime = travel.ArrivalDateTime
             })
             .ToArrayAsync();
 
-        return Result.Success(new ListItemsResult<ListUserTravel>
+        return Result.Success(new ListItemsResult<UserTravelList>
         {
             Items = items,
             TotalCount = totalCount
@@ -120,6 +115,7 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
         return Result.Success(
             new UserTravel
             {
+                OwnerUserId = travel.UserId,
                 UserTravelId = travel.UserTravelId,
                 UserNominative = involvedUsersStore[travel.UserId],
                 TotalPassengersSeatsCount = travel.TotalPassengersSeatsCount,
@@ -131,13 +127,12 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
                 DestinationLatitude = travel.DestinationLatitude,
                 DestinationLongitude = travel.DestinationLongitude,
                 DestinationAddress = travel.DestinationAddress,
-                ArrivalDateTime = travel.ArrivalDateTime,
                 TravelPickUpRequests = pickUpRequests
             });
     }
 
     /// <inheritdoc/>
-    public async Task<Result> EditUserTravelAsync(EditEntityParams<UserTravel> requestParams)
+    public async Task<Result<EditEntityResult<int>>> EditUserTravelAsync(EditEntityParams<UserTravel> requestParams)
     {
         // Validate parameters
         if (requestParams.Entity is null)
@@ -159,10 +154,6 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
         if (string.IsNullOrWhiteSpace(receivedUserTravel.DestinationAddress))
         {
             return Result.InvalidArgument(nameof(receivedUserTravel.DestinationAddress));
-        }
-        if (receivedUserTravel.ArrivalDateTime <= receivedUserTravel.DepartureDateTime)
-        {
-            return Result.InvalidArgument("Destination date must be after departure date");
         }
 
         // Check if creating new or editing existing
@@ -200,16 +191,19 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
         travelEntity.DepartureLatitude = receivedUserTravel.DepartureLatitude;
         travelEntity.DepartureLongitude = receivedUserTravel.DepartureLongitude;
         travelEntity.DepartureAddress = receivedUserTravel.DepartureAddress.Trim();
-        travelEntity.DepartureDateTime = receivedUserTravel.DepartureDateTime;
+        travelEntity.DepartureDateTime = new DateTime(receivedUserTravel.DepartureDateTime.Ticks, DateTimeKind.Utc);
         travelEntity.DestinationLatitude = receivedUserTravel.DestinationLatitude;
         travelEntity.DestinationLongitude = receivedUserTravel.DestinationLongitude;
         travelEntity.DestinationAddress = receivedUserTravel.DestinationAddress.Trim();
-        travelEntity.ArrivalDateTime = receivedUserTravel.ArrivalDateTime;
 
         // Save changes
         await _dbContext.SaveChangesAsync();
 
-        return Result.Success();
+        return Result.Success(
+            new EditEntityResult<int>
+            {
+                EntityId = travelEntity.UserTravelId
+            });
     }
 
     /// <inheritdoc/>

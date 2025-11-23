@@ -1,7 +1,7 @@
 ﻿@{
     Layout = "_LayoutHtml";
     var isAuthenticated = User?.Identity?.IsAuthenticated == true;
-    var userEmail = User?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+    var userFirstName = User?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value;
 }
 @section metas{
     @RenderSection("metas", false)
@@ -11,59 +11,56 @@
 }
 
 <!-- Main Layout -->
-<div class="pmu-hero">
-    <nav class="navbar navbar-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="@Url.Action(MVC.Home.Landing())">
-                <img class="app-logo" src="~/images/app-logo.png" alt="Pick-me-UP" />
-                <span class="brand-text">Pick-me-UP</span>
-            </a>
-            
-            <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-                <span class="badge bg-secondary me-3">demo</span>
-                
-                @if (isAuthenticated)
-                {
-                    <div class="trips-tab me-3">
-                        <a href="@Url.Action(MVC.Home.Landing())" class="pmu-btn pmu-btn-warning">
-                            I Tuoi Viaggi
-                        </a>
+<main class="flex-grow-1">
+    <div class="container d-flex flex-column">
+        <nav class="col-12 container px-0 mb-3">
+            <div class="row align-items-center w-100 gx-3">
+                <div class="col-12 col-md order-1 order-md-2 text-center px-0">
+                    <img src="~/images/hero.png" alt="hero highway image" class="img-fluid w-100" style="max-width:100%; height:auto; object-fit:cover;" />
+                </div>
+
+                <div class="col-6 col-md-auto order-2 order-md-1 d-flex align-items-center">
+                    <a href="@Url.Action(MVC.Home.Landing())" class="d-inline-block">
+                        <img src="~/images/logo.png" alt="Pick-me-UP" class="img-fluid" style="height:80px; max-height:80px;" />
+                    </a>
+                </div>
+
+                <div class="col-6 col-md-auto order-3 order-md-3 d-flex justify-content-end align-items-center pe-0">
+                    <div id="authSection">
+                        @if (isAuthenticated)
+                        { 
+                            <div class="dropdown">
+                                <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <img src="~/images/avatar.png" alt="Avatar"  style="height: 80px;"/>
+                                    <p class="fs-3 fw-bold m-0">@userFirstName</p>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserActions">
+                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Log out</a></li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <button id="loginTriggerBtn" class="btn p-0 d-flex flex-column align-items-center bg-transparent" data-bs-toggle="modal" data-bs-target="#loginModal">
+                                <img src="~/images/avatar.png" alt="Login"  style="height: 80px;"/>
+                                <p class="fs-3 fw-bold m-0">Accedi</p>
+                            </button>
+                        }
                     </div>
-                    
-                    <div class="dropdown">
-                        <button class="pmu-btn pmu-btn-primary pmu-btn-profile dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                            <i class="fa-solid fa-user"></i>
-                            <span>@userEmail</span>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="@Url.Action(MVC.Home.Landing())">Home</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li>
-                                <a class="dropdown-item" href="javascript:void(0)" onclick="document.getElementById('POST_LogOut').submit()">
-                                    <i class="fa-solid fa-right-from-bracket"></i> Esci
-                                </a>
-                            </li>
-                        </ul>
-                    </div>
-                    <form autocomplete="off" method="post" action="@Url.Action(MVC.Auth.Logout())" id="POST_LogOut" style="display:none"></form>
-                }
-                else
-                {
-                    <button class="pmu-btn pmu-btn-primary pmu-btn-profile me-2" data-bs-toggle="modal" data-bs-target="#loginModal">
-                        <i class="fa-solid fa-user"></i>
-                        <span>ACCEDI</span>
-                    </button>
-                }
+                </div>
             </div>
+        </nav>
+        <div class="col-12">
+            @RenderBody()
         </div>
-    </nav>
+    </div>
+</main>
 
-    @RenderBody()
-</div>
-
-<footer class="pmu-footer">
+<footer class="mt-auto text-center py-3">
     <p>© 2025 PickMeUp - Find your way</p>
 </footer>
+
+<partial name="Modals/_LogoutModal" />
 
 @section googlehead{
     @RenderSection("googlehead", false)

@@ -28,6 +28,21 @@ public class GoogleRoutesService(HttpClient httpClient, IOptions<GoogleSettings>
     /// <inheritdoc/>
     public async Task<Result<GoogleRoute>> GetRouteAsync(GetRouteParams requestParams)
     {
+        // Prepare Waypoints for the request body
+        var waypoints = requestParams.Waypoints
+            .Select(waypoint => new
+            {
+                location = new
+                {
+                    latLng = new
+                    {
+                        latitude = waypoint.Latitude,
+                        longitude = waypoint.Longitude,
+                    }
+                },
+                vehicleStopover = true,
+            }).ToArray();
+
         // Prepare request body
         var body = new
         {
@@ -53,6 +68,10 @@ public class GoogleRoutesService(HttpClient httpClient, IOptions<GoogleSettings>
                     }
                 }
             },
+            // Waypoints
+            intermediates = waypoints,
+            optimizeWaypointOrder = true,
+
             travelMode = "DRIVE",
             routingPreference = "TRAFFIC_AWARE",
             computeAlternativeRoutes = false,
@@ -69,7 +88,9 @@ public class GoogleRoutesService(HttpClient httpClient, IOptions<GoogleSettings>
         // Prepare and send HTTP request
         using var request = new HttpRequestMessage(HttpMethod.Post, GOOGLE_ROUTES_URL);
         request.Headers.Add("X-Goog-Api-Key", _googleSettings.MapsApiKey);
-        request.Headers.Add("X-Goog-FieldMask", "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline");
+        request.Headers.Add(
+            "X-Goog-FieldMask", 
+            "routes.distanceMeters,routes.duration,routes.polyline.encodedPolyline,routes.optimizedIntermediateWaypointIndex");
         request.Content = new StringContent(
             JsonSerializer.Serialize(body),
             Encoding.UTF8,

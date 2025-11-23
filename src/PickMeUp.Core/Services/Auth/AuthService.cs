@@ -57,6 +57,7 @@ internal class AuthService(
             new LoginResult
             {
                 UserId = user.UserId,
+                UserFirstName = user.FirstName,
                 UserEmail = user.Email
             });
     }
@@ -278,6 +279,7 @@ internal class AuthService(
         return Result.Success(new LoginResult
         {
             UserId = newUser.UserId,
+            UserFirstName = newUser.FirstName,
             UserEmail = newUser.Email
         });
     }

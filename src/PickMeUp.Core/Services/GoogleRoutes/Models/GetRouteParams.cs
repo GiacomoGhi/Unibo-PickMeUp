@@ -13,4 +13,9 @@ public class GetRouteParams
     /// Destination coordinates for the route.
     /// </summary>
     public Coordinates Destination { get; set; } = default!;
+
+    /// <summary>
+    /// Waypoints coordinates for the route.
+    /// </summary>
+    public Coordinates[] Waypoints { get; set; } = [];
 }

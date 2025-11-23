@@ -23,16 +23,15 @@ internal class UserPickUpRequestService(
         // Build query
         var query = _dbContext.UserPickUpRequests
             .AsNoTracking()
-            .Where(request => !request.DeletionDateTime.HasValue)
-            .OrderByDescending(request => request.PickUpDateTime);
+            .Where(request => !request.DeletionDateTime.HasValue);
 
         // Get total count
         var totalCount = await query.CountAsync();
 
         // Get paginated results
         var items = await query
-            .Skip(requestParams.Skip)
-            .Take(requestParams.Take)
+            // .Skip(requestParams.Skip)
+            // .Take(requestParams.Take)
             .Select(request => new ListUserPickUpRequest
             {
                 UserPickUpRequestId = request.UserPickUpRequestId,
@@ -76,12 +75,9 @@ internal class UserPickUpRequestService(
             UserPickUpRequestId = pickUpRequest.UserPickUpRequestId,
             UserId = pickUpRequest.UserId,
             UserTravelId = pickUpRequest.UserTravelId,
-            PickUpDateTime = pickUpRequest.PickUpDateTime,
             PickUpPointLatitude = pickUpRequest.PickUpPointLatitude,
             PickUpPointLongitude = pickUpRequest.PickUpPointLongitude,
             PickUpPointAddress = pickUpRequest.PickUpPointAddress,
-            PickUpPointToDestinationDistanceInKm = pickUpRequest.PickUpPointToDestinationDistanceInKm,
-            CostsRefund = pickUpRequest.CostsRefund,
             Status = pickUpRequest.Status
         });
     }
@@ -183,12 +179,9 @@ internal class UserPickUpRequestService(
         }
 
         // Update fields
-        pickUpRequestEntity.PickUpDateTime = receivedPickUpRequest.PickUpDateTime;
         pickUpRequestEntity.PickUpPointLatitude = receivedPickUpRequest.PickUpPointLatitude;
         pickUpRequestEntity.PickUpPointLongitude = receivedPickUpRequest.PickUpPointLongitude;
         pickUpRequestEntity.PickUpPointAddress = receivedPickUpRequest.PickUpPointAddress.Trim();
-        pickUpRequestEntity.PickUpPointToDestinationDistanceInKm = receivedPickUpRequest.PickUpPointToDestinationDistanceInKm;
-        pickUpRequestEntity.CostsRefund = receivedPickUpRequest.CostsRefund;
 
         // Save changes
         await _dbContext.SaveChangesAsync();

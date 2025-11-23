@@ -1,0 +1,33 @@
+@using Microsoft.CodeAnalysis.CSharp
+@using PickMeUp.Web.Models.Travel
+
+@model TravelListViewModel
+@{
+    ViewData["Title"] = "Lista Viaggi - Pick-me-UP";
+    Layout = "_Layout";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    <h1 class="h4 mb-3">Viaggi disponibili</h1>
+                    <div class="list-group">
+                        @foreach(var travel in Model.Travels)
+                        {
+                            <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action" aria-current="true">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h5 class="mb-1">Da: @travel.DepartureAddress a @travel.DestinationAddress</h5>
+                                    <small>@travel.DepartureDateTime.ToString("dd MMMM yyyy")</small>
+                                </div>
+                                <p class="mb-1">Autista: @travel.UserNominative</p>
+                                <small>Posti disponibili: @(travel.TotalPassengersSeatsCount - travel.OccupiedPassengerSeatsCount)</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

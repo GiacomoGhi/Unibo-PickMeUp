@@ -1,6 +1,6 @@
 @inject Microsoft.AspNetCore.Mvc.IUrlHelper Url
-<!-- Login Modal - Bootstrap Standard -->
-<div class="modal fade pmu-modal pmu-modal-dark pmu-auth-modal pmu-dark-theme" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
+<!-- Login Modal - refactored to use Bootstrap utilities -->
+<div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -8,52 +8,46 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="pmu-google-signin">
-                    <div id="googleLoginBtn" data-url="@Url.Action("GoogleLogin", "Auth")"></div>
+                <div id="googleLoginBtn" data-url="@Url.Action("GoogleLogin", "Auth")"></div>
+
+                <div class="d-flex align-items-center my-3">
+                    <hr class="flex-grow-1" />
+                    <span class="mx-2 text-muted small">oppure</span>
+                    <hr class="flex-grow-1" />
                 </div>
-                
-                <div class="pmu-divider"><span>oppure</span></div>
-                
+
                 <form id="loginForm" data-url="@Url.Action("Login", "Auth")">
-                    <div class="pmu-form-group">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" class="pmu-form-control" id="loginEmail" name="Email" placeholder="tua@email.com" required />
+                    <div class="mb-3">
+                        <label for="loginEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="loginEmail" name="Email" placeholder="tua@email.com" required />
                     </div>
-                    
-                    <div class="pmu-form-group">
-                        <label for="loginPassword">Password</label>
-                        <div class="pmu-password-input-wrapper">
-                            <input type="password" class="pmu-form-control" id="loginPassword" name="Password" placeholder="••••••••" required />
-                            <button type="button" class="pmu-password-toggle" data-target="loginPassword" tabindex="-1">
-                                <svg class="eye-open" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M10 4C5 4 1.73 7.11 1 10c.73 2.89 4 6 9 6s8.27-3.11 9-6c-.73-2.89-4-6-9-6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                    <circle cx="10" cy="10" r="2.5" stroke="currentColor" stroke-width="1.5"/>
-                                </svg>
-                                <svg class="eye-closed" width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" style="display: none;">
-                                    <path d="M3 3l14 14M10 7a3 3 0 013 3M10 13a3 3 0 01-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                    <path d="M7.5 6.5C8.3 6.2 9.1 6 10 6c5 0 8.27 3.11 9 6a11 11 0 01-2.16 3.19M12.5 13.5A5.5 5.5 0 011 10a11 11 0 012.84-3.69" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-                                </svg>
+
+                        <div class="mb-3">
+                        <label for="loginPassword" class="form-label">Password</label>
+                        <div class="input-group">
+                            <input type="password" class="form-control" id="loginPassword" name="Password" placeholder="••••••••" required />
+                            <button type="button" class="btn btn-outline-secondary pmu-password-toggle" data-target="loginPassword" tabindex="-1" aria-label="Toggle password visibility">
+                                <span class="eye-open">👁</span>
+                                <span class="eye-closed" style="display:none;">🙈</span>
                             </button>
                         </div>
-                        <a href="#" class="pmu-link-secondary text-right" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" data-bs-dismiss="modal">Password dimenticata?</a>
-                    </div>
-                    
-                    <div class="pmu-form-group">
-                        <div class="pmu-form-check">
-                            <input type="checkbox" id="rememberMe" name="RememberMe" />
-                            <label for="rememberMe">Ricordami</label>
+                        <div class="text-end mt-2">
+                            <a href="#" class="link-secondary" data-bs-toggle="modal" data-bs-target="#resetPasswordModal" data-bs-dismiss="modal">Password dimenticata?</a>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="pmu-btn pmu-btn-primary">Accedi</button>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="rememberMe" name="RememberMe" />
+                        <label class="form-check-label" for="rememberMe">Ricordami</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100">Accedi</button>
                 </form>
-                
-                <a href="#" class="pmu-link-secondary text-center" data-bs-toggle="modal" data-bs-target="#signupModal" data-bs-dismiss="modal">
-                    Non hai un account? <strong>Registrati</strong>
-                </a>
-                <a href="#" class="pmu-link-secondary text-center" data-bs-toggle="modal" data-bs-target="#resendModal" data-bs-dismiss="modal">
-                    Non hai ricevuto l'email? <strong>Reinvia</strong>
-                </a>
+
+                <div class="mt-3 text-center">
+                    <a href="#" class="d-block link-secondary" data-bs-toggle="modal" data-bs-target="#signupModal" data-bs-dismiss="modal">Non hai un account? <strong>Registrati</strong></a>
+                    <a href="#" class="d-block link-secondary" data-bs-toggle="modal" data-bs-target="#resendModal" data-bs-dismiss="modal">Non hai ricevuto l'email? <strong>Reinvia</strong></a>
+                </div>
             </div>
         </div>
     </div>

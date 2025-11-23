@@ -45,6 +45,23 @@ async function initMap() {
     label: "B",
   });
 
+  // Aggiungi marker per ogni pick-up point
+  if (routeData.pickUpRequests && Array.isArray(routeData.pickUpRequests)) {
+    routeData.pickUpRequests.forEach((request, index) => {
+      if (
+        request.location &&
+        Number.isFinite(request.location.lat) &&
+        Number.isFinite(request.location.lng)
+      ) {
+        new google.maps.Marker({
+          position: { lat: request.location.lat, lng: request.location.lng },
+          map,
+          label: `${index + 1}`,
+        });
+      }
+    });
+  }
+
   // Polyline percorso
   if (!routeData.encodedPolyline) {
     console.error("Nessun polilinea codificato disponibile per il percorso");
@@ -107,4 +124,97 @@ function displayRouteInfoFromMetrics(distanceMeters, durationSeconds) {
 
   const mapElement = document.getElementById("map");
   mapElement.parentElement.insertBefore(infoDiv, mapElement);
+
+  // -- STATE --
+  const state = reactive({
+    location: null,
+    submitted: false,
+  });
+
+  const isLocationValid = computed(() => !!state.location);
+
+  const initGooglePlaces = async () => {
+    const { PlaceAutocompleteElement } = await google.maps.importLibrary(
+      "places"
+    );
+
+    // Inizializza autocomplete per la location
+    locationAutocomplete = new PlaceAutocompleteElement({
+      componentRestrictions: { country: "it" },
+    });
+    locationAutocomplete.id = "location-autocomplete";
+    locationAutocomplete.placeholder = "Inserisci indirizzo di pick-up";
+    // Ensure autocomplete element gets Bootstrap form styling
+    locationAutocomplete.className = "form-control";
+    document
+      .getElementById("location-container")
+      .appendChild(locationAutocomplete);
+    locationAutocomplete.addEventListener(
+      "gmp-select",
+      async ({ placePrediction }) =>
+        await onPlaceChangedAsync("location", placePrediction)
+    );
+  };
+
+  const validateAndGetData = () => {
+    state.submitted = true;
+
+    if (!isLocationValid.value) {
+      return null;
+    }
+
+    return {
+      location: state.location,
+    };
+  };
+
+  const handleRequestPickUp = async (travelId) => {
+    const searchData = validateAndGetData();
+    if (!searchData) {
+      utilities.alertError("Seleziona il pick-up point dai suggerimenti", 3000);
+      return;
+    }
+
+    // Prepare payload matching query-string used in handleFindRide
+    const payload = {
+      TravelId: travelId,
+      PickUpPointAddress: searchData.location.formattedAddress,
+      Location: {
+        Latitude: searchData.location.coordinates.lat,
+        Longitude: searchData.location.coordinates.lng,
+      },
+    };
+
+    try {
+      await utilities.postJsonT("/Travel/EditPickUpRequest", payload);
+    } catch (err) {
+      console.error("Edit pick-up request error:", err);
+      utilities.alertError("Errore di connessione. Riprova.", 3000);
+    }
+  };
+
+  // -- WATCHERS --
+  // Osserva i cambiamenti per applicare le classi di validazione in modo reattivo
+  watch(
+    () => state.location,
+    (newValue) => {
+      if (locationAutocomplete) {
+        locationAutocomplete.classList.toggle("is-valid", !!newValue);
+        locationAutocomplete.classList.remove("is-invalid");
+      }
+    }
+  );
+
+  // -- LIFECYCLE HOOK --
+  onMounted(() => {
+    initGooglePlaces();
+  });
+
+  // -- EXPOSE TO TEMPLATE --
+  return {
+    // Esponi l'intero oggetto di stato reattivo
+    state,
+    isLocationValid,
+    handleRequestPickUp,
+  };
 }
