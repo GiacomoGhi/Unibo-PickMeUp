@@ -1,4 +1,5 @@
-﻿using PickMeUp.Core.Services.UserPickUpRequest;
+﻿using PickMeUp.Core.Common.Models;
+using PickMeUp.Core.Services.UserPickUpRequest;
 using System;
 
 namespace PickMeUp.Core.Services.UserTravel;
@@ -31,19 +32,9 @@ public class UserTravel
     public int OccupiedPassengerSeatsCount { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the departure location.
+    /// Departure location.
     /// </summary>
-    public double DepartureLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the departure location.
-    /// </summary>
-    public double DepartureLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the departure location.
-    /// </summary>
-    public string DepartureAddress { get; set; } = default!;
+    public Location DepartureLocation { get; set; } = default!;
 
     /// <summary>
     /// Date and time of departure.
@@ -51,22 +42,12 @@ public class UserTravel
     public DateTime DepartureDateTime { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the destination location.
+    /// Location of the destination.
     /// </summary>
-    public double DestinationLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the destination location.
-    /// </summary>
-    public double DestinationLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the destination location.
-    /// </summary>
-    public string DestinationAddress { get; set; } = default!;
+    public Location DestinationLocation { get; set; } = default!;
 
     /// <summary>
     /// Pick up requests associated with this travel.
     /// </summary>
-    public UserPickUpRequestLookupItem[] TravelPickUpRequests { get; set; } = [];
+    public UserPickUpRequestLookup[] TravelPickUpRequests { get; set; } = [];
 }

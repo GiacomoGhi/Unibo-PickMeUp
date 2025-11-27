@@ -1,5 +1,5 @@
-using PickMeUp.Core.Common.Models;
 using PickMeUp.Enums.UserPickUpRequest;
+using PickMeUp.Web.Models.Shared;
 
 namespace PickMeUp.Web.Models.Travel;
 
@@ -21,14 +21,9 @@ public class PickUpRequestViewModel
     public string? UserNominative { get; set; }
 
     /// <summary>
-    /// Address of the pick up point location.
+    /// Location of the pick up point location.
     /// </summary>
-    public string PickUpPointAddress { get; set; } = default!;
-
-    /// <summary>
-    /// Longitude of the pick up point location.
-    /// </summary>
-    public Coordinates Location { get; set; } = default!;
+    public LocationViewModel Location { get; set; } = default!;
 
     /// <summary>
     /// Status of the pick up request.

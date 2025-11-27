@@ -5,6 +5,7 @@ using PickMeUp.Core.Database;
 using PickMeUp.Core.Services.Email;
 using PickMeUp.Enums.UserPickUpRequest;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -29,21 +30,39 @@ internal class UserPickUpRequestService(
         var totalCount = await query.CountAsync();
 
         // Get paginated results
-        var items = await query
+        var pickUpRequests = await query
             // .Skip(requestParams.Skip)
             // .Take(requestParams.Take)
-            .Select(request => new ListUserPickUpRequest
+            .Select(pickUpRequest => new
             {
-                UserPickUpRequestId = request.UserPickUpRequestId,
-                UserNominative = $"{request.User.FirstName} {request.User.LastName}",
-                PickUpPointAddress = request.PickUpPointAddress,
-                Status = request.Status
+                pickUpRequest.UserPickUpRequestId,
+                pickUpRequest.Status,
+                pickUpRequest.LocationId,
+                UserNominative = $"{pickUpRequest.User.FirstName} {pickUpRequest.User.LastName}",
             })
-            .ToArrayAsync();
+            .ToListAsync();
 
+        var involvedLocationIds = pickUpRequests
+            .Select(r => r.LocationId)
+            .Distinct();
+
+        var locations = await _dbContext.Locations
+            .AsNoTracking()
+            .Where(location => involvedLocationIds.Contains(location.LocationId))
+            .ToDictionaryAsync(
+                location => location.LocationId,
+                location => location.ReadableAddress);
+    
         return new ListItemsResult<ListUserPickUpRequest>
         {
-            Items = items,
+            Items = [.. pickUpRequests
+                .Select(r => new ListUserPickUpRequest
+                {
+                    UserPickUpRequestId = r.UserPickUpRequestId,
+                    Status = r.Status,
+                    UserNominative = r.UserNominative,
+                    PickUpPointAddress = locations.GetValueOrDefault(r.LocationId) ?? "Unknown Address",
+                })],
             TotalCount = totalCount
         };
     }
@@ -58,7 +77,7 @@ internal class UserPickUpRequestService(
         }
 
         // Load pickup request
-        var loadResult = await LoadUserPickUpRequestAsync(
+        var loadResult = await this.LoadUserPickUpRequestAsync(
             userPickUpRequestId: requestParams.EntityId,
             userId: null,
             useNoTracking: true);
@@ -68,17 +87,15 @@ internal class UserPickUpRequestService(
             return Result.Error(loadResult.ErrorMessage);
         }
 
-        var pickUpRequest = loadResult.Data!;
+        var pickUpRequestData = loadResult.Data!;
 
         return Result.Success(new UserPickUpRequest
         {
-            UserPickUpRequestId = pickUpRequest.UserPickUpRequestId,
-            UserId = pickUpRequest.UserId,
-            UserTravelId = pickUpRequest.UserTravelId,
-            PickUpPointLatitude = pickUpRequest.PickUpPointLatitude,
-            PickUpPointLongitude = pickUpRequest.PickUpPointLongitude,
-            PickUpPointAddress = pickUpRequest.PickUpPointAddress,
-            Status = pickUpRequest.Status
+            UserPickUpRequestId = pickUpRequestData.PickUpRequest.UserPickUpRequestId,
+            UserId = pickUpRequestData.PickUpRequest.UserId,
+            UserTravelId = pickUpRequestData.PickUpRequest.UserTravelId,
+            Location = pickUpRequestData.Location.ToServiceModel(),
+            Status = pickUpRequestData.PickUpRequest.Status
         });
     }
 
@@ -92,14 +109,13 @@ internal class UserPickUpRequestService(
         {
             return Result.InvalidArgument(nameof(receivedPickUpRequest.UserTravelId));
         }
-        if (string.IsNullOrWhiteSpace(receivedPickUpRequest.PickUpPointAddress))
+        if (string.IsNullOrWhiteSpace(receivedPickUpRequest.Location.ReadableAddress))
         {
-            return Result.InvalidArgument(nameof(receivedPickUpRequest.PickUpPointAddress));
+            return Result.InvalidArgument(nameof(receivedPickUpRequest.Location.ReadableAddress));
         }
 
-        DatabaseModels.UserPickUpRequest pickUpRequestEntity;
-
         // Check if creating new or editing existing
+        LoadUserPickUpRequestData loadPickUpRequestData;
         if (receivedPickUpRequest.UserPickUpRequestId <= 0)
         {
             // CREATE: Validate user
@@ -111,6 +127,8 @@ internal class UserPickUpRequestService(
             // Verify travel exists and is not departed
             var travel = await _dbContext.UserTravels
                 .AsNoTracking()
+                .Include(travel => travel.DepartureLocation)
+                .Include(travel => travel.DestinationLocation)
                 .Where(travel => travel.UserTravelId == receivedPickUpRequest.UserTravelId
                               && !travel.DeletionDateTime.HasValue)
                 .FirstOrDefaultAsync();
@@ -132,14 +150,20 @@ internal class UserPickUpRequestService(
             }
 
             // Create new pickup request
-            pickUpRequestEntity = new DatabaseModels.UserPickUpRequest
+            var location = new DatabaseModels.Location();
+            loadPickUpRequestData = new()
             {
-                UserId = requestParams.UserId,
-                UserTravelId = receivedPickUpRequest.UserTravelId,
-                Status = UserPickUpRequestStatus.Pending
+                PickUpRequest = new DatabaseModels.UserPickUpRequest
+                {
+                    UserId = requestParams.UserId,
+                    UserTravelId = receivedPickUpRequest.UserTravelId,
+                    Status = UserPickUpRequestStatus.Pending,
+                    Location = location,
+                },
+                Location = location
             };
 
-            _dbContext.UserPickUpRequests.Add(pickUpRequestEntity);
+            _dbContext.UserPickUpRequests.Add(loadPickUpRequestData.PickUpRequest);
 
             // Load both users in a single query
             var userIds = new[] { travel.UserId, requestParams.UserId };
@@ -155,33 +179,42 @@ internal class UserPickUpRequestService(
                     travelOwner.FirstName,
                     requester.FirstName,
                     requester.LastName,
-                    travel.DepartureAddress,
-                    travel.DestinationAddress,
-                    receivedPickUpRequest.PickUpPointAddress);
+                    travel.DepartureLocation.ReadableAddress,
+                    travel.DestinationLocation.ReadableAddress,
+                    receivedPickUpRequest.Location.ReadableAddress);
             }
         }
         else
         {
             // EDIT: Load existing request
-            var loadResult = await LoadUserPickUpRequestAsync(receivedPickUpRequest.UserPickUpRequestId, requestParams.UserId);
+            var loadResult = await this.LoadUserPickUpRequestAsync(receivedPickUpRequest.UserPickUpRequestId, requestParams.UserId);
             if (loadResult.HasNonSuccessStatusCode)
             {
                 return Result.Error(loadResult.ErrorMessage);
             }
 
-            pickUpRequestEntity = loadResult.Data!;
+            loadPickUpRequestData = loadResult.Data!;
 
             // Cannot edit if already accepted or rejected
-            if (pickUpRequestEntity.Status != UserPickUpRequestStatus.Pending)
+            if (loadPickUpRequestData.PickUpRequest.Status != UserPickUpRequestStatus.Pending)
             {
                 return Result.Error("Cannot edit a request that has already been processed");
             }
         }
+        var locationEntity = loadPickUpRequestData.Location;
 
         // Update fields
-        pickUpRequestEntity.PickUpPointLatitude = receivedPickUpRequest.PickUpPointLatitude;
-        pickUpRequestEntity.PickUpPointLongitude = receivedPickUpRequest.PickUpPointLongitude;
-        pickUpRequestEntity.PickUpPointAddress = receivedPickUpRequest.PickUpPointAddress.Trim();
+        locationEntity.ReadableAddress = receivedPickUpRequest.Location.ReadableAddress;
+        locationEntity.Latitude = receivedPickUpRequest.Location.Coordinates.Latitude;
+        locationEntity.Longitude = receivedPickUpRequest.Location.Coordinates.Longitude;
+        locationEntity.Street = receivedPickUpRequest.Location.Street;
+        locationEntity.Number = receivedPickUpRequest.Location.Number;
+        locationEntity.City = receivedPickUpRequest.Location.City;
+        locationEntity.PostalCode = receivedPickUpRequest.Location.PostalCode;
+        locationEntity.Province = receivedPickUpRequest.Location.Province;
+        locationEntity.Region = receivedPickUpRequest.Location.Region;
+        locationEntity.Country = receivedPickUpRequest.Location.Country;
+        locationEntity.Continent = receivedPickUpRequest.Location.Continent;
 
         // Save changes
         await _dbContext.SaveChangesAsync();
@@ -203,7 +236,7 @@ internal class UserPickUpRequestService(
         }
 
         // Load pickup request
-        var loadResult = await LoadUserPickUpRequestAsync(
+        var loadResult = await this.LoadUserPickUpRequestAsync(
             userPickUpRequestId: requestParams.UserPickUpRequestId,
             userId: null,
             useNoTracking: false);
@@ -213,9 +246,10 @@ internal class UserPickUpRequestService(
             return Result.Error(loadResult.ErrorMessage);
         }
 
-        var pickupRequest = loadResult.Data!;
+        var pickupRequestData = loadResult.Data!;
 
         // Check that user is NOT the owner of the pickup request
+        var pickupRequest = pickupRequestData.PickUpRequest;
         if (pickupRequest.UserId == requestParams.UserId)
         {
             return Result.Unauthorized();
@@ -287,8 +321,8 @@ internal class UserPickUpRequestService(
                 requester.FirstName,
                 travelOwner.FirstName,
                 requestParams.Status,
-                travel.DepartureAddress,
-                travel.DestinationAddress,
+                travel.DepartureLocation.ReadableAddress,
+                travel.DestinationLocation.ReadableAddress,
                 travel.DepartureDateTime);
         }
 
@@ -309,11 +343,13 @@ internal class UserPickUpRequestService(
         }
 
         // Load pickup request
-        var pickupRequest = await _dbContext.UserPickUpRequests
-            .Where(request => request.UserPickUpRequestId == requestParams.EntityId
-                           && request.UserId == requestParams.UserId
-                           && !request.DeletionDateTime.HasValue)
-            .FirstOrDefaultAsync();
+        var loadResult = await this.LoadUserPickUpRequestAsync(requestParams.EntityId, requestParams.UserId);
+        if (loadResult.HasNonSuccessStatusCode)
+        {
+            return Result.Error(loadResult.ErrorMessage);
+        }
+        
+        var pickupRequest = loadResult.Data!.PickUpRequest;
 
         if (pickupRequest is null)
         {
@@ -329,6 +365,13 @@ internal class UserPickUpRequestService(
                 .Where(travel => travel.UserTravelId == pickupRequest.UserTravelId
                               && !travel.DeletionDateTime.HasValue)
                 .FirstOrDefaultAsync();
+
+            var travelLocations = await _dbContext.Locations
+                .Where(location => location.LocationId == travel!.DepartureLocationId
+                              || location.LocationId == travel.DestinationLocationId)
+                .ToDictionaryAsync(
+                    location => location.LocationId,
+                    location => location.ReadableAddress);
 
             if (travel is not null)
             {
@@ -349,8 +392,8 @@ internal class UserPickUpRequestService(
                         travelOwner.FirstName,
                         requester.FirstName,
                         requester.LastName,
-                        travel.DepartureAddress,
-                        travel.DestinationAddress,
+                        travelLocations[travel.DepartureLocationId],
+                        travelLocations[travel.DestinationLocationId],
                         travel.DepartureDateTime);
                 }
             }
@@ -368,7 +411,7 @@ internal class UserPickUpRequestService(
     /// <summary>
     /// Load user pickup request by ID with optional user validation.
     /// </summary>
-    private async Task<Result<DatabaseModels.UserPickUpRequest>> LoadUserPickUpRequestAsync(
+    private async Task<Result<LoadUserPickUpRequestData>> LoadUserPickUpRequestAsync(
         int userPickUpRequestId,
         int? userId,
         bool useNoTracking = false)
@@ -386,6 +429,33 @@ internal class UserPickUpRequestService(
             return Result.NotFound("UserPickUpRequest");
         }
 
-        return Result.Success(pickupRequest);
+        var location = await _dbContext.Locations
+            .AsNoTracking(useNoTracking)
+            .Where(location => location.LocationId == pickupRequest.LocationId)
+            .FirstOrDefaultAsync();
+
+        if (location is null)
+        {
+            return Result.NotFound("UserTravel");
+        }
+
+        return Result.Success(new LoadUserPickUpRequestData
+        {
+            PickUpRequest = pickupRequest,
+            Location = location
+        });
+    }
+
+    private class LoadUserPickUpRequestData
+    {
+        /// <summary>
+        /// The loaded pick up request.
+        /// </summary>
+        public DatabaseModels.UserPickUpRequest PickUpRequest { get; set; } = default!;
+
+        /// <summary>
+        /// The associated location.
+        /// </summary>
+        public DatabaseModels.Location Location { get; set; } = default!;
     }
 }

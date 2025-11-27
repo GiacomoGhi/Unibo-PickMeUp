@@ -27,19 +27,9 @@ internal class UserTravel
     public int OccupiedPassengerSeatsCount { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the departure location.
+    /// Identifier of the departure location.
     /// </summary>
-    public double DepartureLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the departure location.
-    /// </summary>
-    public double DepartureLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the departure location.
-    /// </summary>
-    public string DepartureAddress { get; set; } = default!;
+    public int DepartureLocationId { get; set; }
 
     /// <summary>
     /// Date and time of departure.
@@ -47,19 +37,9 @@ internal class UserTravel
     public DateTime DepartureDateTime { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the destination location.
+    /// Identifier of the destination location.
     /// </summary>
-    public double DestinationLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the destination location.
-    /// </summary>
-    public double DestinationLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the destination location.
-    /// </summary>
-    public string DestinationAddress { get; set; } = default!;
+    public int DestinationLocationId { get; set; }
 
     /// <summary>
     /// Date and time when this travel was deleted.
@@ -70,6 +50,16 @@ internal class UserTravel
     /// Navigation property to the associated user linked using <see cref="UserId"/>.
     /// </summary>
     public User User { get; set; } = default!;
+
+    /// <summary>
+    /// Navigation property to the associated departure location linked using <see cref="DepartureLocationId"/>.
+    /// </summary>
+    public Location DepartureLocation { get; set; } = default!;
+
+    /// <summary>
+    /// Navigation property to the associated destination location linked using <see cref="DestinationLocationId"/>.
+    /// </summary>
+    public Location DestinationLocation { get; set; } = default!;
 }
 
 internal class UserTravelConfiguration : IEntityTypeConfiguration<UserTravel>
@@ -79,16 +69,17 @@ internal class UserTravelConfiguration : IEntityTypeConfiguration<UserTravel>
         // Primary key
         builder.HasKey(e => e.UserTravelId);
 
-        // Constraints
-        builder.Property(e => e.DepartureAddress)
-            .HasMaxLength(250);
-
-        builder.Property(e => e.DestinationAddress)
-            .HasMaxLength(250);
-
         // Relationships
         builder.HasOne(e => e.User)
             .WithMany()
             .HasForeignKey(e => e.UserId);
+
+        builder.HasOne(e => e.DepartureLocation)
+            .WithMany()
+            .HasForeignKey(e => e.DepartureLocationId);
+
+        builder.HasOne(e => e.DestinationLocation)
+            .WithMany()
+            .HasForeignKey(e => e.DestinationLocationId);
     }
 }

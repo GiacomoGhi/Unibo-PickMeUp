@@ -1,5 +1,6 @@
 
 using System;
+using PickMeUp.Web.Models.Shared;
 
 namespace PickMeUp.Web.Models.Travel;
 
@@ -47,4 +48,19 @@ public class TravelListItemViewModel
     /// Address of the destination location.
     /// </summary>
     public string DestinationAddress { get; set; } = default!;
+}
+
+public class TravelListRequest
+{
+    public bool IsFromFindTravel { get; set; } = false;
+
+    /// <summary>
+    /// Departure location to filter travels.
+    /// </summary>
+    public LocationViewModel? Departure { get; set; }
+
+    /// <summary>
+    /// Destination location to filter travels.
+    /// </summary>
+    public LocationViewModel? Destination { get; set; }
 }

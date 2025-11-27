@@ -1,13 +1,14 @@
 ﻿using PickMeUp.Enums.UserPickUpRequest;
+using PickMeUp.Web.Models.Shared;
 
-namespace PickMeUp.Core.Services.UserPickUpRequest;
+namespace PickMeUp.Web.Models.Travel;
 
-public class UserPickUpRequestLookupItem
+public class PickUpRequestLookupViewModel
 {
     /// <summary>
     /// Identifier of the pick up request.
     /// </summary>
-    public int UserPickUpRequestId { get; set; }
+    public int PickUpRequestId { get; set; }
 
     /// <summary>
     /// Identifier of the user associated with this pick up request.
@@ -18,21 +19,11 @@ public class UserPickUpRequestLookupItem
     /// Nominative of the user associated with this pick up request.
     /// </summary>
     public string UserNominative { get; set; } = default!;
-
+    
     /// <summary>
-    /// Latitude coordinate of the pick up point location.
+    /// Location associated with this pick up request.
     /// </summary>
-    public double PickUpPointLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the pick up point location.
-    /// </summary>
-    public double PickUpPointLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the pick up point location.
-    /// </summary>
-    public string PickUpPointAddress { get; set; } = default!;
+    public LocationLookupViewModel Location { get; set; } = default!;
 
     /// <summary>
     /// Status of the pick up request.

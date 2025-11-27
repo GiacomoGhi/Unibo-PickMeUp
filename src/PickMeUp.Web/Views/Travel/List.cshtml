@@ -1,0 +1,121 @@
+@using Microsoft.Extensions.Options
+@using PickMeUp.Core.Services.GoogleRoutes
+@using PickMeUp.Web.Models.Travel
+
+@model TravelListViewModel
+@inject IOptions<GoogleSettings> _googleSettings
+
+@{
+    ViewData["Title"] = "Lista Viaggi - Pick-me-UP";
+    Layout = "_Layout";
+}
+
+<div class="container py-4">
+    
+    <div id="searchApp" class="mb-5">
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h5 class="card-title mb-3">🔍 Cerca il tuo passaggio</h5>
+                
+                <form method="get" action="@Url.Action("List", "Travel")" ref="searchForm" v-on:submit.prevent="handleSearch">
+                    
+                    <input type="hidden" name="IsFromFindTravel" value="true" />
+
+                    <template v-if="state.departure">
+                        <input type="hidden" name="Departure.ReadableAddress" :value="state.departure.formattedAddress" />
+                        <input type="hidden" name="Departure.Coordinates.Latitude" :value="state.departure.coordinates.lat" />
+                        <input type="hidden" name="Departure.Coordinates.Longitude" :value="state.departure.coordinates.lng" />
+                        <input type="hidden" name="Departure.Street" :value="state.departure.addressComponents.route" />
+                        <input type="hidden" name="Departure.Number" :value="state.departure.addressComponents.street_number" />
+                        <input type="hidden" name="Departure.City" :value="state.departure.addressComponents.city" />
+                        <input type="hidden" name="Departure.PostalCode" :value="state.departure.addressComponents.postalCode" />
+                        <input type="hidden" name="Departure.Province" :value="state.departure.addressComponents.province" />
+                        <input type="hidden" name="Departure.Region" :value="state.departure.addressComponents.region" />
+                        <input type="hidden" name="Departure.Country" :value="state.departure.addressComponents.country" />
+                    </template>
+
+                    <template v-if="state.destination">
+                        <input type="hidden" name="Destination.ReadableAddress" :value="state.destination.formattedAddress" />
+                        <input type="hidden" name="Destination.Coordinates.Latitude" :value="state.destination.coordinates.lat" />
+                        <input type="hidden" name="Destination.Coordinates.Longitude" :value="state.destination.coordinates.lng" />
+                        <input type="hidden" name="Destination.Street" :value="state.destination.addressComponents.route" />
+                        <input type="hidden" name="Destination.Number" :value="state.destination.addressComponents.street_number" />
+                        <input type="hidden" name="Destination.City" :value="state.destination.addressComponents.city" />
+                        <input type="hidden" name="Destination.PostalCode" :value="state.destination.addressComponents.postalCode" />
+                        <input type="hidden" name="Destination.Province" :value="state.destination.addressComponents.province" />
+                        <input type="hidden" name="Destination.Region" :value="state.destination.addressComponents.region" />
+                        <input type="hidden" name="Destination.Country" :value="state.destination.addressComponents.country" />
+                    </template>
+
+                    <div class="row g-3">
+                        <div class="col-md-5">
+                            <label class="form-label small text-muted">Da dove parti?</label>
+                            <div id="departure-container"></div>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label small text-muted">Dove vuoi andare?</label>
+                            <div id="destination-container"></div>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100" :disabled="!isSearchValid">
+                                Cerca
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12">
+             @if (!Model.Travels.Any())
+             {
+                 <div class="text-center py-5 text-muted">
+                     <h3>😔 Nessun viaggio trovato</h3>
+                     <p>Prova a cercare una città più grande o rimuovi alcuni filtri.</p>
+                     <a href="@Url.Action("List", "Travel")" class="btn btn-outline-secondary mt-2">Reset Filtri</a>
+                 </div>
+             }
+             else
+             {
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h1 class="h4">Viaggi disponibili (@Model.Travels.Length)</h1>
+                </div>
+
+                <div class="list-group shadow-sm">
+                    @foreach(var travel in Model.Travels)
+                    {
+                        <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action p-4 mb-2 border rounded" aria-current="true">
+                            <div class="d-flex w-100 justify-content-between mb-2">
+                                <h5 class="mb-1 text-primary">
+                                    <i class="bi bi-geo-alt"></i> @travel.DepartureAddress 
+                                    <i class="bi bi-arrow-right mx-2 text-muted"></i> 
+                                    <i class="bi bi-geo-alt-fill"></i> @travel.DestinationAddress
+                                </h5>
+                                <small class="text-muted">@travel.DepartureDateTime.ToString("dd MMM yyyy, HH:mm")</small>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <p class="mb-1"><i class="bi bi-person-circle"></i> Autista: @travel.UserNominative</p>
+                                    <span class="badge bg-success rounded-pill">
+                                        @(travel.TotalPassengersSeatsCount - travel.OccupiedPassengerSeatsCount) posti liberi
+                                    </span>
+                                </div>
+                                <small class="text-muted">Clicca per dettagli</small>
+                            </div>
+                        </a>
+                    }
+                </div>
+             }
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/search-travel.js" asp-append-version="true"></script>
+    
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initSearchApp">
+    </script>
+}

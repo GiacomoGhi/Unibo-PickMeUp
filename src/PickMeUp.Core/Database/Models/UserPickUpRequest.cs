@@ -23,19 +23,9 @@ internal class UserPickUpRequest
     public int UserTravelId { get; set; }
 
     /// <summary>
-    /// Latitude coordinate of the pick up point location.
+    /// Identifier of the location of the pick up point.
     /// </summary>
-    public double PickUpPointLatitude { get; set; }
-
-    /// <summary>
-    /// Longitude coordinate of the pick up point location.
-    /// </summary>
-    public double PickUpPointLongitude { get; set; }
-
-    /// <summary>
-    /// Address of the pick up point location.
-    /// </summary>
-    public string PickUpPointAddress { get; set; } = default!;
+    public int LocationId { get; set; }
 
     /// <summary>
     /// Status of the pick up request.
@@ -56,6 +46,11 @@ internal class UserPickUpRequest
     /// Navigation property to the associated travel linked using <see cref="UserTravelId"/>.
     /// </summary>
     public UserTravel UserTravel { get; set; } = default!;
+
+    /// <summary>
+    /// Navigation property to the associated pick up point location linked using <see cref="LocationId"/>.
+    /// </summary>
+    public Location Location { get; set; } = default!;
 }
 
 internal class UserPickUpRequestConfiguration : IEntityTypeConfiguration<UserPickUpRequest>
@@ -74,5 +69,10 @@ internal class UserPickUpRequestConfiguration : IEntityTypeConfiguration<UserPic
         builder.HasOne(e => e.UserTravel)
             .WithMany()
             .HasForeignKey(e => e.UserTravelId);
+
+        // One-to-many relationship with Location for PickUpPointLocation
+        builder.HasOne(e => e.Location)
+            .WithMany()
+            .HasForeignKey(e => e.LocationId);
     }
 }

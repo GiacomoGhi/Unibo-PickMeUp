@@ -8,6 +8,7 @@ internal class PickMeUpDbContext(DbContextOptions<PickMeUpDbContext> options) : 
     public DbSet<User> Users => Set<User>();
     public DbSet<UserPickUpRequest> UserPickUpRequests => Set<UserPickUpRequest>();
     public DbSet<UserTravel> UserTravels => Set<UserTravel>();
+    public DbSet<Location> Locations => Set<Location>();
 
     /// <inheritdoc/>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -20,5 +21,6 @@ internal class PickMeUpDbContext(DbContextOptions<PickMeUpDbContext> options) : 
         modelBuilder.ApplyConfiguration(new UserConfiguration());
         modelBuilder.ApplyConfiguration(new UserPickUpRequestConfiguration());
         modelBuilder.ApplyConfiguration(new UserTravelConfiguration());
+        modelBuilder.ApplyConfiguration(new LocationConfiguration());
     }
 }

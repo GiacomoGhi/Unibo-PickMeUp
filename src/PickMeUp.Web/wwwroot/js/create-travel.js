@@ -12,6 +12,7 @@ function initVueApp() {
       const state = reactive({
         departure: null,
         destination: null,
+        seatsCount: 1,
         departureDate: null,
         departureTime: null,
         submitted: false,
@@ -23,8 +24,15 @@ function initVueApp() {
       // -- COMPUTED PROPERTIES --
       const isDepartureValid = computed(() => !!state.departure);
       const isDestinationValid = computed(() => !!state.destination);
+      const isSeatsValid = computed(() => {
+        const n = Number(state.seatsCount);
+        return Number.isInteger(n) && n >= 1;
+      });
       const arePlacesValid = computed(
-        () => isDepartureValid.value && isDestinationValid.value
+        () =>
+          isDepartureValid.value &&
+          isDestinationValid.value &&
+          isSeatsValid.value
       );
 
       // -- METHODS --
@@ -101,24 +109,45 @@ function initVueApp() {
 
       const extractAddressComponents = (components) => {
         const result = {
-          street: "",
+          street_number: "",
+          route: "",
           city: "",
+          postalCode: "",
           province: "",
           region: "",
           country: "",
-          postalCode: "",
+          continent: "",
         };
+
         if (!components) return result;
+
         components.forEach((c) => {
-          if (c.types.includes("route")) result.street = c.long_name;
-          if (c.types.includes("locality")) result.city = c.long_name;
-          if (c.types.includes("administrative_area_level_2"))
-            result.province = c.short_name;
-          if (c.types.includes("administrative_area_level_1"))
-            result.region = c.long_name;
-          if (c.types.includes("country")) result.country = c.long_name;
-          if (c.types.includes("postal_code")) result.postalCode = c.long_name;
+          if (c.types.includes("street_number")) {
+            result.street_number = c.longText;
+          }
+          if (c.types.includes("route")) {
+            result.route = c.longText;
+          }
+          if (c.types.includes("locality")) {
+            result.city = c.longText;
+          }
+          if (c.types.includes("postal_code")) {
+            result.postalCode = c.longText;
+          }
+          if (c.types.includes("administrative_area_level_2")) {
+            result.province = c.shortText;
+          }
+          if (c.types.includes("administrative_area_level_1")) {
+            result.region = c.longText;
+          }
+          if (c.types.includes("country")) {
+            result.country = c.longText;
+          }
+          if (c.types.includes("continent")) {
+            result.continent = c.longText;
+          }
         });
+
         return result;
       };
 
@@ -134,53 +163,11 @@ function initVueApp() {
           destination: state.destination,
           departureDate: state.departureDate,
           departureTime: state.departureTime,
-          timestamp: new Date().toISOString(),
+          seatsCount: Number(state.seatsCount),
         };
       };
 
-      const handleFindRide = () => {
-        if (typeof isAuthenticated !== "undefined" && !isAuthenticated) {
-          utilities.alertError(
-            "Devi effettuare l'accesso per cercare un passaggio",
-            3000
-          );
-          new bootstrap.Modal(document.getElementById("loginModal")).show();
-          return;
-        }
-
-        const searchData = validateAndGetData();
-        if (!searchData) {
-          utilities.alertError(
-            "Seleziona sia la partenza che la destinazione dai suggerimenti",
-            3000
-          );
-          return;
-        }
-
-        const params = new URLSearchParams({
-          DeparturePlaceId: searchData.departure.placeId,
-          DepartureAddress: searchData.departure.formattedAddress,
-          DepartureLat: searchData.departure.coordinates.lat,
-          DepartureLng: searchData.departure.coordinates.lng,
-          DestinationPlaceId: searchData.destination.placeId,
-          DestinationAddress: searchData.destination.formattedAddress,
-          DestinationLat: searchData.destination.coordinates.lat,
-          DestinationLng: searchData.destination.coordinates.lng,
-        });
-
-        window.location.href = `/Travel/Search?${params.toString()}`;
-      };
-
       const handleAddTrip = async () => {
-        if (typeof isAuthenticated !== "undefined" && !isAuthenticated) {
-          utilities.alertError(
-            "Devi effettuare l'accesso per aggiungere un viaggio",
-            3000
-          );
-          new bootstrap.Modal(document.getElementById("loginModal")).show();
-          return;
-        }
-
         const searchData = validateAndGetData();
         if (!searchData) {
           utilities.alertError(
@@ -190,19 +177,46 @@ function initVueApp() {
           return;
         }
 
-        // Prepare payload matching query-string used in handleFindRide
         const payload = {
-          DeparturePlaceId: searchData.departure.placeId,
-          DepartureAddress: searchData.departure.formattedAddress,
-          DepartureLat: searchData.departure.coordinates.lat,
-          DepartureLng: searchData.departure.coordinates.lng,
-          DestinationPlaceId: searchData.destination.placeId,
-          DestinationAddress: searchData.destination.formattedAddress,
-          DestinationLat: searchData.destination.coordinates.lat,
-          DestinationLng: searchData.destination.coordinates.lng,
+          UserId: 0,
+          UserTravelId: 0,
           DepartureDate: searchData.departureDate || null,
           DepartureTime: searchData.departureTime || null,
-          Timestamp: searchData.timestamp || new Date().toISOString(),
+          DepartureLocation: {
+            LocationId: 0,
+            ReadableAddress: searchData.departure.formattedAddress,
+            Coordinates: {
+              Latitude: searchData.departure.coordinates.lat,
+              Longitude: searchData.departure.coordinates.lng,
+            },
+            Street: searchData.departure.addressComponents.route,
+            Number: searchData.departure.addressComponents.street_number,
+            City: searchData.departure.addressComponents.city,
+            PostalCode: searchData.departure.addressComponents.postalCode,
+            Province: searchData.departure.addressComponents.province,
+            Region: searchData.departure.addressComponents.region,
+            Country: searchData.departure.addressComponents.country,
+            Continent: searchData.departure.addressComponents.continent,
+          },
+          DestinationLocation: {
+            LocationId: 0,
+            ReadableAddress: searchData.destination.formattedAddress,
+            Coordinates: {
+              Latitude: searchData.destination.coordinates.lat,
+              Longitude: searchData.destination.coordinates.lng,
+            },
+            Street: searchData.destination.addressComponents.route,
+            Number: searchData.destination.addressComponents.street_number,
+            City: searchData.destination.addressComponents.city,
+            PostalCode: searchData.destination.addressComponents.postalCode,
+            Province: searchData.destination.addressComponents.province,
+            Region: searchData.destination.addressComponents.region,
+            Country: searchData.destination.addressComponents.country,
+            Continent: searchData.destination.addressComponents.continent,
+          },
+          TotalPassengersSeatsCount: searchData.seatsCount,
+          OccupiedPassengerSeatsCount: 0,
+          PickUpRequests: [],
         };
 
         try {
@@ -273,14 +287,9 @@ function initVueApp() {
         state,
         isDepartureValid,
         isDestinationValid,
-        handleFindRide,
+        isSeatsValid,
         handleAddTrip,
       };
     },
-  }).mount("#searchApp");
+  }).mount("#createApp");
 }
-
-// Gestisce il caso in cui l'utente effettua il login
-window.addEventListener("userLoggedIn", () => {
-  console.log("User logged in successfully, form data preserved by Vue state.");
-});

@@ -3,7 +3,7 @@ using PickMeUp.Enums.UserPickUpRequest;
 
 namespace PickMeUp.Core.Services.UserPickUpRequest;
 
-public class UserPickUpRequest
+public class UserPickUpRequestLookup
 {
     /// <summary>
     /// Identifier of the pick up request.
@@ -16,14 +16,14 @@ public class UserPickUpRequest
     public int UserId { get; set; }
 
     /// <summary>
-    /// Identifier of the travel that this request is for.
+    /// Nominative of the user associated with this pick up request.
     /// </summary>
-    public int UserTravelId { get; set; }
-
+    public string UserNominative { get; set; } = default!;
+    
     /// <summary>
-    /// Location of the pick up point.
+    /// Location associated with this pick up request.
     /// </summary>
-    public Location Location { get; set; } = default!;
+    public LocationLookup Location { get; set; } = default!;
 
     /// <summary>
     /// Status of the pick up request.

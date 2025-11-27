@@ -25,6 +25,7 @@
     </script>
     <link href="~/node_modules/@@fortawesome/fontawesome-free/css/all.min.css" asp-append-version="true" rel="stylesheet" />
     <link href="~/css/bundle-global.css" asp-append-version="true" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @RenderSection("styles", false)
 </head>
 <body class="d-flex flex-column min-vh-100" data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(_googleSettings.Value.ClientId)">
@@ -41,6 +42,7 @@
     </environment>
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://unpkg.com/vue@3"></script>
     <script src="~/js/auth.js" asp-append-version="true"></script>
     <script src="~/js/password-validation.js" asp-append-version="true"></script>
     <script src="~/js/password-toggle.js" asp-append-version="true"></script>

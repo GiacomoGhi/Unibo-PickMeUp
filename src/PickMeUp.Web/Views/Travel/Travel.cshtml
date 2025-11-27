@@ -6,7 +6,7 @@
 @inject IOptions<GoogleSettings> _googleSettings
 @inject Microsoft.AspNetCore.Mvc.IUrlHelper Url
 
-@model UserTravelViewModel
+@model TravelViewModel
 @{
     ViewData["Title"] = "Viaggio Pick-me-UP";
     Layout = "_Layout";
@@ -21,7 +21,7 @@
         .ToDictionary(g => g.Key, g => g.ToList());
 }
 
-<div class="container py-5">
+<div id="travelApp" class="container py-5" v-cloak>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10">
             <div class="card shadow-sm">
@@ -35,7 +35,7 @@
                             <i class="fa-solid fa-circle-dot"></i>
                         </div>
                         <div class="col">
-                            <div class="text-truncate">@Model.DepartureAddress</div>
+                            <div class="text-truncate">@Model.DepartureLocation.ReadableAddress</div>
                         </div>
                         <div class="col-auto text-muted">
                             <i class="fa-solid fa-arrow-down"></i>
@@ -44,14 +44,14 @@
                             <i class="fa-solid fa-location-dot"></i>
                         </div>
                         <div class="col">
-                            <div class="text-truncate">@Model.DestinationAddress</div>
+                            <div class="text-truncate">@Model.DestinationLocation.ReadableAddress</div>
                         </div>
                     </div>
 
-                    @* Pick-up requests *@
+                    @* Pick-up requests trigger *@
                     <div class="row mb-4">
                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
-                            Visualizza richieste di pick-up
+                            @(isOwner ? "Visualizza richieste di pick-up" : "Le fermate del viaggio")
                             @if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Pending, out var pendingRequests) && isOwner)
                             {
                                 <span class="badge bg-warning">@pendingRequests.Count</span>
@@ -59,19 +59,38 @@
                         </button>
                     </div>
 
-                    <div id="map" style="height:520px; width:100%;"></div>
+                    <div class="position-relative">
+                        <div v-if="state.routeStats.visible" class="mb-2">
+                            <div class="d-inline-flex align-items-center bg-light border rounded shadow-sm px-3 py-2 gap-4">
+                                
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-road text-primary me-2"></i>
+                                    <span class="fw-bold text-dark">{{ state.routeStats.distanceText }}</span>
+                                </div>
+
+                                <div class="d-flex align-items-center">
+                                    <i class="fa-solid fa-clock text-primary me-2"></i>
+                                    <span class="fw-bold text-dark">{{ state.routeStats.durationText }}</span>
+                                </div>
+
+                            </div>
+                        </div>
+                        
+                        <div id="map" class="rounded border" style="height:520px; width:100%;"></div>
+                    </div>
 
                     @if (!isOwner)
                     {
                         <div class="row mt-4">
                             <label for="location-autocomplete" class="form-label">Luogo di Pick-Up</label>
                             <div id="location-container"></div>
+                            
                             <div class="invalid-feedback" v-if="state.submitted && !isLocationValid">
-                                Seleziona un indirizzo dai suggerimenti
+                                Seleziona un indirizzo valido dai suggerimenti
                             </div>
                         </div>
                         <div class="row">
-                            <button type="button" class="btn btn-primary mt-3 col-auto" v-on:click="handleRequestPickUp(@Model.UserTravelId)">
+                            <button type="button" class="btn btn-primary mt-3 col-auto" v-on:click="handleRequestPickUp()">
                                 Richiedi Pick-Up
                             </button>
                         </div>
@@ -88,7 +107,6 @@
     </div>
 </div>
 
-<!-- Pick up requests modal -->
 <div class="modal fade" id="pickUpRequestsModal" tabindex="-1" aria-labelledby="pickUpRequestsModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -112,8 +130,7 @@
                             {
                                 <div class="row mb-3 p-3 border rounded">
                                     <h6 class="mb-1">@request.UserNominative</h6>
-                                    <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
-                                    @* TODO add time *@
+                                    <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
                                     <p class="mb-1">Ore: --:--</p> 
                                 </div>
                             }
@@ -131,8 +148,7 @@
                                     <div class="row">
                                         <div class="row p-3 border rounded">
                                             <h6 class="mb-1">@request.UserNominative</h6>
-                                            <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
-                                            @* TODO add time *@
+                                            <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
                                             <p class="mb-1">Ore: --:--</p> 
                                         </div>
                                         <div class="row justify-content-end">
@@ -168,8 +184,7 @@
                                 {
                                     <div class="row mb-3 p-3 border rounded">
                                         <h6 class="mb-1">@request.UserNominative</h6>
-                                        <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.PickUpPointAddress</p>
-                                        @* TODO add time *@
+                                        <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
                                         <p class="mb-1">Ore: --:--</p> 
                                     </div>
                                 }
@@ -184,23 +199,25 @@
 
 @section scripts {
     <script>
+        // Dati iniettati dal server per Vue
         window.routeData = @Json.Serialize(new {
-            origin = new { lat = Model.DepartureLat, lng = Model.DepartureLng },
-            destination = new { lat = Model.DestinationLat, lng = Model.DestinationLng },
+            travelId = Model.UserTravelId,
+            origin = new { lat = Model.DepartureLocation.Coordinates.Latitude, lng = Model.DepartureLocation.Coordinates.Longitude },
+            destination = new { lat = Model.DestinationLocation.Coordinates.Latitude, lng = Model.DestinationLocation.Coordinates.Longitude },
             encodedPolyline = Model.Route?.EncodedPolyline,
             distanceMeters = Model.Route?.DistanceMeters,
             durationSeconds = Model.Route?.DurationSeconds,
             pickUpRequests = Model.PickUpRequests
                 .Select(pickUnRequest => new {
                     pickUnRequest.UserNominative,
-                    pickUnRequest.PickUpPointAddress,
+                    pickUnRequest.Location.ReadableAddress,
                     pickUnRequest.Status,
-                    location = new { lat = pickUnRequest.Location.Latitude, lng = pickUnRequest.Location.Longitude },
+                    location = new { lat = pickUnRequest.Location.Coordinates.Latitude, lng = pickUnRequest.Location.Coordinates.Longitude },
                 }).ToArray(),
         });
     </script>
     <script src="~/js/travel.js" asp-append-version="true"></script>
     <script async
-            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initMap">
+            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initTravelApp">
     </script>
 }

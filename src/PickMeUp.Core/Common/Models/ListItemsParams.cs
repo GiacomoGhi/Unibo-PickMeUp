@@ -2,7 +2,27 @@
 
 public class ListItemsParams : ParamsBase
 {
-    // TODO restore to allow pagination when needed
+    /// <summary>
+    /// IDs of the users of whom to include travels.
+    /// </summary>
+    public int[] UserIdsToInclude { get; set; } = [];
+
+    /// <summary>
+    /// IDs of the users of whom to exclude travels.
+    /// </summary>
+    public int[] UserIdsToExclude { get; set; } = [];
+
+    /// <summary>
+    /// Destination location to filter travels.
+    /// </summary>
+    public Location? DepartureLocation { get; set; }
+    
+    /// <summary>
+    /// Destination location to filter travels.
+    /// </summary>
+    public Location? DestinationLocation { get; set; }
+
+    // TODO when pagination will be implemented
     // /// <summary>
     // /// Number of items to skip (for pagination/virtual scroll).
     // /// </summary>

@@ -1,0 +1,79 @@
+@using Microsoft.Extensions.Options
+@using PickMeUp.Core.Services.GoogleRoutes
+
+@inject IOptions<GoogleSettings> _googleSettings
+
+@{
+    ViewData["Title"] = "Pick-me-UP - Find your way";
+    Layout = "_Layout";
+}
+
+<div class="container my-auto">
+    <h1 class="text-center mb-4">Find your way</h1>
+
+    <div id="createApp">
+        <form v-on:submit.prevent>
+            <div class="row justify-content-center mb-3">
+                <div class="col-12 col-md-6 mb-3">
+                    <label for="departure-autocomplete" class="form-label">Partenza</label>
+                    <div id="departure-container"></div>
+                    <div class="invalid-feedback" v-if="state.submitted && !isDepartureValid">
+                        Seleziona un punto di partenza dai suggerimenti
+                    </div>
+                </div>
+
+                <div class="col-12 col-md-6 mb-3">
+                    <label for="destination-autocomplete" class="form-label">Destinazione</label>
+                    <div id="destination-container"></div>
+                    <div class="invalid-feedback" v-if="state.submitted && !isDestinationValid">
+                        Seleziona una destinazione dai suggerimenti
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center mb-4">
+                <div class="col-7 col-md-3 mb-3">
+                    <label for="departureDate" class="form-label">Data partenza</label>
+                    <input type="date"
+                        id="departureDate"
+                        v-model="state.departureDate"
+                        class="form-control" />
+                </div>
+
+                <div class="col-7 col-md-3 mb-3">
+                    <label for="departureTime" class="form-label">Ora</label>
+                    <input type="time"
+                        id="departureTime"
+                        v-model="state.departureTime"
+                        class="form-control" />
+                </div>
+                
+                <div class="col-7 col-md-3 mb-3">
+                    <label for="seatsCount" class="form-label">Posti disponibili</label>
+                    <input type="number"
+                        id="seatsCount"
+                        v-model="state.seatsCount"
+                        class="form-control"
+                        min="1"
+                        value="1" />
+                    <div class="invalid-feedback" v-if="state.submitted && !isSeatsValid">
+                        Inserisci il numero di posti disponibili (minimo 1)
+                    </div>
+                </div>
+            </div>
+
+            <div class="row justify-content-center gap-4">
+                <button type="button" class="btn btn-primary w-auto" v-on:click="handleAddTrip">
+                    ➕ Crea Viaggio
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section scripts {
+    <script src="~/js/create-travel.js" asp-append-version="true"></script>
+    <script async
+            src="https://maps.googleapis.com/maps/api/js?key=@(_googleSettings.Value.MapsApiKey)&loading=async&callback=initVueApp">
+    </script>
+}
