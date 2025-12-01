@@ -3,8 +3,8 @@
 
 // Enable Bootstrap dark mode support and use the `data` strategy so
 // compiled CSS contains rules for `[data-bs-theme="dark"]`.
-// $enable-dark-mode: true;
-// $color-mode-type: data;
+$enable-dark-mode: true;
+$color-mode-type: data;
 
 // Import full Bootstrap (it will import variables/maps after our overrides)
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";

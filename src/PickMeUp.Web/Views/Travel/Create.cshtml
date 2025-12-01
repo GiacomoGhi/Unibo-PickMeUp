@@ -8,67 +8,90 @@
     Layout = "_Layout";
 }
 
-<div class="container my-auto">
-    <h1 class="text-center mb-4">Find your way</h1>
+<style>
+    /* Split background for the whole page */
+    body {
+        background: linear-gradient(to bottom, #212529 50%, #f8f9fa 50%);
+    }
+    @@media (min-width: 768px) {
+        body {
+            background: linear-gradient(to right, #212529 50%, #f8f9fa 50%);
+        }
+    }
+</style>
 
-    <div id="createApp">
-        <form v-on:submit.prevent>
-            <div class="row justify-content-center mb-3">
-                <div class="col-12 col-md-6 mb-3">
-                    <label for="departure-autocomplete" class="form-label">Partenza</label>
-                    <div id="departure-container"></div>
-                    <div class="invalid-feedback" v-if="state.submitted && !isDepartureValid">
-                        Seleziona un punto di partenza dai suggerimenti
-                    </div>
-                </div>
-
-                <div class="col-12 col-md-6 mb-3">
-                    <label for="destination-autocomplete" class="form-label">Destinazione</label>
-                    <div id="destination-container"></div>
-                    <div class="invalid-feedback" v-if="state.submitted && !isDestinationValid">
-                        Seleziona una destinazione dai suggerimenti
-                    </div>
-                </div>
+<div id="createApp" class="d-flex flex-column flex-grow-1 justify-content-center position-relative">
+    <form v-on:submit.prevent class="w-100">
+        <div class="row h-100 align-items-center">
+            <!-- Left Side (Dark) -->
+            <div class="col-12 col-md-6 text-center text-white mb-5 mb-md-0 d-flex flex-column justify-content-center align-items-center" style="min-height: 300px;">
+                <h1 class="display-3 fw-bold">Aggiungi<br>un viaggio</h1>
             </div>
 
-            <div class="row justify-content-center mb-4">
-                <div class="col-7 col-md-3 mb-3">
-                    <label for="departureDate" class="form-label">Data partenza</label>
-                    <input type="date"
-                        id="departureDate"
-                        v-model="state.departureDate"
-                        class="form-control" />
-                </div>
+            <!-- Right Side (Light) -->
+            <div class="col-12 col-md-6 text-dark mt-5 mt-md-0 p-4 p-md-5">
+                <div class="mx-auto" style="max-width: 400px;">
+                    <h4 class="text-center fw-bold mb-4">Inserisci le informazioni<br>richieste</h4>
 
-                <div class="col-7 col-md-3 mb-3">
-                    <label for="departureTime" class="form-label">Ora</label>
-                    <input type="time"
-                        id="departureTime"
-                        v-model="state.departureTime"
-                        class="form-control" />
-                </div>
-                
-                <div class="col-7 col-md-3 mb-3">
-                    <label for="seatsCount" class="form-label">Posti disponibili</label>
-                    <input type="number"
-                        id="seatsCount"
-                        v-model="state.seatsCount"
-                        class="form-control"
-                        min="1"
-                        value="1" />
-                    <div class="invalid-feedback" v-if="state.submitted && !isSeatsValid">
-                        Inserisci il numero di posti disponibili (minimo 1)
+                    <!-- Partenza -->
+                    <div class="mb-3">
+                        <label for="departure-autocomplete" class="form-label small fw-bold">Partenza</label>
+                        <div id="departure-container"></div>
+                        <div class="invalid-feedback d-block" v-if="state.submitted && !isDepartureValid">
+                            Seleziona un punto di partenza dai suggerimenti
+                        </div>
                     </div>
+
+                    <!-- Arrivo -->
+                    <div class="mb-3">
+                        <label for="destination-autocomplete" class="form-label small fw-bold">Arrivo</label>
+                        <div id="destination-container"></div>
+                        <div class="invalid-feedback d-block" v-if="state.submitted && !isDestinationValid">
+                            Seleziona una destinazione dai suggerimenti
+                        </div>
+                    </div>
+
+                    <!-- Data -->
+                    <div class="mb-3">
+                        <label for="departureDate" class="form-label small fw-bold">Data</label>
+                        <input type="date"
+                            id="departureDate"
+                            v-model="state.departureDate"
+                            class="form-control" 
+                            placeholder="GG/MM/YYYY"/>
+                    </div>
+
+                    <!-- Ora -->
+                    <div class="mb-3">
+                        <label for="departureTime" class="form-label small fw-bold">Ora di Partenza</label>
+                        <input type="time"
+                            id="departureTime"
+                            v-model="state.departureTime"
+                            class="form-control" />
+                    </div>
+
+                    <!-- Posti -->
+                    <div class="mb-4">
+                        <label for="seatsCount" class="form-label small fw-bold">Posti Disponibili</label>
+                        <input type="number"
+                            id="seatsCount"
+                            v-model="state.seatsCount"
+                            class="form-control"
+                            min="1"
+                            placeholder="es. 3" />
+                        <div class="invalid-feedback d-block" v-if="state.submitted && !isSeatsValid">
+                            Inserisci il numero di posti disponibili (minimo 1)
+                        </div>
+                    </div>
+                    
+                    <!-- Button -->
+                    <button type="button" class="btn btn-primary w-100 py-2 fw-bold" v-on:click="handleAddTrip">
+                        + CONFERMA
+                    </button>
                 </div>
             </div>
-
-            <div class="row justify-content-center gap-4">
-                <button type="button" class="btn btn-primary w-auto" v-on:click="handleAddTrip">
-                    ➕ Crea Viaggio
-                </button>
-            </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
 @section scripts {
