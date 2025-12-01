@@ -10,55 +10,55 @@
     @RenderSection("styles", false)
 }
 
+<style>
+    @@media (max-width: 767.98px) {
+        .responsive-invert {
+            filter: invert(1);
+        }
+    }
+</style>
+
 <!-- Main Layout -->
-<main class="flex-grow-1">
-    <div class="container d-flex flex-column">
-        <nav class="col-12 container px-0 mb-3">
-            <div class="row align-items-center w-100 gx-3">
-                <div class="col-12 col-md order-1 order-md-2 text-center px-0">
-                    <img src="~/images/hero.png" alt="hero highway image" class="img-fluid w-100" style="max-width:100%; height:auto; object-fit:cover;" />
-                </div>
+<nav>
+    <div class="row align-items-center w-100 gx-3">
+        <div class="col-12 col-md order-1 order-md-2 text-center px-0">
+            <img src="~/images/hero.png" alt="hero highway image" class="img-fluid w-70"/>
+        </div>
 
-                <div class="col-6 col-md-auto order-2 order-md-1 d-flex align-items-center">
-                    <a href="@Url.Action(MVC.Home.Landing())" class="d-inline-block">
-                        <img src="~/images/logo.png" alt="Pick-me-UP" class="img-fluid" style="height:80px; max-height:80px;" />
-                    </a>
-                </div>
+        <div class="col-6 col-md-auto order-2 order-md-1 d-flex align-items-center ps-4 ps-md-0 ms-md-5 mt-3">
+            <a href="@Url.Action(MVC.Home.Landing())" class="d-inline-block">
+                <img src="~/images/logo.svg" alt="Pick-me-UP" class="img-fluid" style="height:80px; max-height:80px;" />
+            </a>
+        </div>
 
-                <div class="col-6 col-md-auto order-3 order-md-3 d-flex justify-content-end align-items-center pe-0">
-                    <div id="authSection">
-                        @if (isAuthenticated)
-                        { 
-                            <div class="dropdown">
-                                <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="~/images/avatar.png" alt="Avatar"  style="height: 80px;"/>
-                                    <p class="fs-3 fw-bold m-0">@userFirstName</p>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserActions">
-                                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Log out</a></li>
-                                </ul>
-                            </div>
-                        }
-                        else
-                        {
-                            <button id="loginTriggerBtn" class="btn p-0 d-flex flex-column align-items-center bg-transparent" data-bs-toggle="modal" data-bs-target="#loginModal">
-                                <img src="~/images/avatar.png" alt="Login"  style="height: 80px;"/>
-                                <p class="fs-3 fw-bold m-0">Accedi</p>
-                            </button>
-                        }
+        <div class="col-6 col-md-auto order-3 order-md-3 d-flex justify-content-end align-items-center pe-4 pe-md-0 me-md-5 mt-3">
+            <div id="authSection">
+                @if (isAuthenticated)
+                { 
+                    <div class="dropdown">
+                        <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
+                            <img src="~/images/avatar.svg" alt="Avatar" class="responsive-invert" style="height: 80px;"/>
+                            <p class="fs-3 fw-bold m-0 responsive-invert text-dark">@userFirstName</p>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserActions">
+                            <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#logoutModal">Log out</a></li>
+                        </ul>
                     </div>
-                </div>
+                }
+                else
+                {
+                    <button id="loginTriggerBtn" class="btn p-0 d-flex flex-column align-items-center bg-transparent" data-bs-toggle="modal" data-bs-target="#loginModal">
+                        <img src="~/images/avatar.svg" alt="Login" class="responsive-invert" style="height: 80px;"/>
+                    </button>
+                }
             </div>
-        </nav>
-        <div class="col-12">
-            @RenderBody()
         </div>
     </div>
-</main>
+</nav>
 
-<footer class="mt-auto text-center py-3">
-    <p>© 2025 PickMeUp - Find your way</p>
-</footer>
+<div class="container d-flex flex-column flex-grow-1">
+    @RenderBody()
+</div>
 
 <partial name="Modals/_LogoutModal" />
 
