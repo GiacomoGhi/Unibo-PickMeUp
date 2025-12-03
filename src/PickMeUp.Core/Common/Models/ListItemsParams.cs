@@ -1,4 +1,6 @@
-﻿namespace PickMeUp.Core.Common.Models;
+﻿using System;
+
+namespace PickMeUp.Core.Common.Models;
 
 public class ListItemsParams : ParamsBase
 {
@@ -21,6 +23,11 @@ public class ListItemsParams : ParamsBase
     /// Destination location to filter travels.
     /// </summary>
     public Location? DestinationLocation { get; set; }
+
+    /// <summary>
+    /// Departure date to filter travels.
+    /// </summary>
+    public DateOnly? DepartureDate { get; set; }
 
     // TODO when pagination will be implemented
     // /// <summary>

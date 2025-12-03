@@ -7,6 +7,17 @@ namespace PickMeUp.Web.Models.Travel;
 public class TravelListViewModel
 {
     /// <summary>
+    /// Indicates if the view is accessed from the "Find Travel" feature.
+    /// If false, the view is accessed from the "My Travels" section.
+    /// </summary>
+    public bool IsFromFindTravel { get; set; }
+
+    /// <summary>
+    /// The original search request filters.
+    /// </summary>
+    public TravelListRequest Filters { get; set; } = new();
+
+    /// <summary>
     /// User travel item.
     /// </summary>
     public TravelListItemViewModel[] Travels { get; set; } = [];
@@ -63,4 +74,9 @@ public class TravelListRequest
     /// Destination location to filter travels.
     /// </summary>
     public LocationViewModel? Destination { get; set; }
+
+    /// <summary>
+    /// Departure date to filter travels.
+    /// </summary>
+    public DateOnly? DepartureDate { get; set; }
 }

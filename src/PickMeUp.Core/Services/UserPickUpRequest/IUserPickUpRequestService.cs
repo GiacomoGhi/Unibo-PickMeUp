@@ -26,6 +26,11 @@ public interface IUserPickUpRequestService
     public Task<Result> EditUserPickUpRequestStatusAsync(EditUserPickUpRequestStatusParams requestParams);
 
     /// <summary>
+    /// Edit the status of multiple user pick-up requests in bulk.
+    /// </summary>
+    public Task<Result> EditUserPickUpRequestStatusBulkAsync(EditUserPickUpRequestStatusBulkParams requestParams);
+
+    /// <summary>
     /// Deletes the requested user pick-up request.
     /// </summary>
     public Task<Result> DeleteUserPickUpRequestAsync(DeleteEntityParams<int> requestParams);

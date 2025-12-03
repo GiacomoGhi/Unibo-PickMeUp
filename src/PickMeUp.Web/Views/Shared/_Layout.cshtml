@@ -47,9 +47,9 @@
                 }
                 else
                 {
-                    <button id="loginTriggerBtn" class="btn p-0 d-flex flex-column align-items-center bg-transparent" data-bs-toggle="modal" data-bs-target="#loginModal">
+                    <a href="@Url.Action("Login", "Auth2")" class="btn p-0 d-flex flex-column align-items-center bg-transparent">
                         <img src="~/images/avatar.svg" alt="Login" class="responsive-invert" style="height: 80px;"/>
-                    </button>
+                    </a>
                 }
             </div>
         </div>
@@ -75,8 +75,6 @@
     @RenderSection("scripts", false)
 }
 
-<partial name="Modals/_LoginModal" />
-<partial name="Modals/_SignupModal" />
 <partial name="Modals/_ResetPasswordModal" />
 <partial name="Modals/_ResendConfirmationModal" />
 <partial name="Modals/_AccountActivationModal" />

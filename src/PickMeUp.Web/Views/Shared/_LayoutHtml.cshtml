@@ -1,8 +1,4 @@
-﻿@using Microsoft.Extensions.Options
-@using PickMeUp.Core.Services.GoogleRoutes
-
-@inject IOptions<GoogleSettings> _googleSettings
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="@this.CurrentCulture().Name" class="@ViewData["FullscreenClass"]">
 <head>
     <meta charset="utf-8" />
@@ -28,7 +24,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @RenderSection("styles", false)
 </head>
-<body class="d-flex flex-column min-vh-100" data-is-authenticated="@((User?.Identity?.IsAuthenticated ?? false).ToString().ToLower())" data-google-client-id="@(_googleSettings.Value.ClientId)">
+<body class="d-flex flex-column min-vh-100">
     @RenderSection("googlebody", false)
     @RenderBody()
     <script type="text/javascript">
@@ -43,9 +39,6 @@
 
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://unpkg.com/vue@3"></script>
-    <script src="~/js/auth.js" asp-append-version="true"></script>
-    <script src="~/js/password-validation.js" asp-append-version="true"></script>
-    <script src="~/js/password-toggle.js" asp-append-version="true"></script>
 
     @RenderSection("scripts", required: false)
 </body>

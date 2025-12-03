@@ -29,26 +29,36 @@
         <!-- Left Side (Dark) -->
         <div class="col-12 col-md-6 text-center text-md-end pe-md-5 text-white mb-5 mb-md-0">
              <div class="d-flex justify-content-center justify-content-md-end">
-                 <button id="addTripBtn" class="btn btn-light p-4 rounded-4 text-start d-flex align-items-center gap-3 shadow-lg border-0" style="background-color: #CFA0E9; min-width: 280px;">
+                @{
+                    var addTravelAction = User?.Identity?.IsAuthenticated is true 
+                        ? Url.Action("Create", "Travel")
+                        : Url.Action("Login", "Auth2");
+                }
+                 <a href="@addTravelAction" id="addTripBtn" class="btn btn-light p-4 rounded-4 text-start d-flex align-items-center gap-3 shadow-lg border-0" style="background-color: #CFA0E9; min-width: 280px;">
                      <span class="display-4">+</span>
                      <div>
                          <div class="small fw-bold text-uppercase">DRIVER ?</div>
                          <div class="fw-bold fs-5">AGGIUNGI UN<br>VIAGGIO</div>
                      </div>
-                 </button>
+                 </a>
              </div>
         </div>
 
         <!-- Right Side (Light) -->
         <div class="col-12 col-md-6 text-center text-md-start ps-md-5 text-dark mt-5 mt-md-0">
              <div class="d-flex justify-content-center justify-content-md-start">
-                 <button id="findRideBtn" class="btn btn-info p-4 rounded-4 text-start d-flex align-items-center gap-3 shadow-lg text-white border-0" style="min-width: 280px;">
+                @{
+                    var findRideAction = User?.Identity?.IsAuthenticated is true 
+                        ? Url.Action("List", "Travel", new { IsFromFindTravel  = true })
+                        : Url.Action("Login", "Auth2");
+                }
+                 <a href="@findRideAction" id="findRideBtn" class="btn btn-info p-4 rounded-4 text-start d-flex align-items-center gap-3 shadow-lg text-white border-0" style="min-width: 280px;">
                      <span class="display-4">📍</span>
                      <div>
                          <div class="small fw-bold text-uppercase">GUEST ?</div>
                          <div class="fw-bold fs-5">CHIEDI<br>UN PASSAGGIO</div>
                      </div>
-                 </button>
+                 </a>
              </div>
         </div>
     </div>
@@ -62,36 +72,3 @@
         </div>
     </div>
 </div>
-
-@section scripts {
-    <script>
-        const travelListUrl = '@Url.Action("List","Travel", new { isFromFindTravel = true })';
-        document.getElementById("findRideBtn").addEventListener("click", () => {
-            if (!isAuthenticated) {
-                openLoginModal();
-                return;
-            }
-            // Redirect to the search page or open search modal
-            window.location.href = travelListUrl;
-        });
-
-        const travelCreateUrl = '@Url.Action("Create","Travel")';
-        document.getElementById("addTripBtn").addEventListener("click", () => {
-            if (!isAuthenticated) {
-                openLoginModal();
-                return;
-            }
-
-            // Redirect to the add trip page
-            window.location.href = travelCreateUrl;
-        });
-
-        const openLoginModal = () => {
-            utilities.alertError(
-            "Devi effettuare l'accesso per aggiungere un viaggio",
-            3000
-            );
-            new bootstrap.Modal(document.getElementById("loginModal")).show();
-        };
-    </script>
-}

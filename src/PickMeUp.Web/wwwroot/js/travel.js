@@ -10,20 +10,17 @@ function initTravelApp() {
     setup() {
       // -- STATE --
       const state = reactive({
-        location: null, // Per la richiesta di pick-up
-        submitted: false,
         routeStats: {
           distanceText: null,
           durationText: null,
           visible: false,
         },
+        location: null,
+        submitted: false,
       });
 
       let map = null;
       let locationAutocomplete = null;
-
-      // -- COMPUTED PROPERTIES --
-      const isLocationValid = computed(() => !!state.location);
 
       // -- METHODS: MAP --
       const initMap = async () => {
@@ -184,6 +181,10 @@ function initTravelApp() {
           return;
         }
 
+        const addressComponents = extractAddressComponents(
+          place.addressComponents
+        );
+
         state.location = {
           placeId: place.id,
           formattedAddress: place.formattedAddress,
@@ -192,7 +193,7 @@ function initTravelApp() {
             lat: place.location.lat(),
             lng: place.location.lng(),
           },
-          addressComponents: extractAddressComponents(place.addressComponents),
+          addressComponents: addressComponents,
         };
       };
 
@@ -241,40 +242,35 @@ function initTravelApp() {
         return result;
       };
 
-      const validateAndGetData = () => {
-        state.submitted = true;
-        if (!isLocationValid.value) return null;
-        return { location: state.location };
-      };
-
+      // -- METHODS: FORM SUBMISSION --
       const handleRequestPickUp = async () => {
-        const searchData = validateAndGetData();
-        if (!searchData) {
-          utilities.alertError(
-            "Seleziona il pick-up point dai suggerimenti",
-            3000
-          );
+        state.submitted = true;
+
+        if (!state.location) {
+          utilities.alertError("Seleziona un indirizzo dai suggerimenti", 3000);
           return;
         }
 
+        const travelId = window.routeData.travelId;
         const payload = {
+          TravelId: travelId,
           PickUpRequestId: 0,
-          TravelId: routeData.travelId,
+          Status: 0, // Pending
           Location: {
             LocationId: 0,
-            ReadableAddress: searchData.location.formattedAddress,
+            ReadableAddress: state.location.formattedAddress,
             Coordinates: {
-              Latitude: searchData.location.coordinates.lat,
-              Longitude: searchData.location.coordinates.lng,
+              Latitude: state.location.coordinates.lat,
+              Longitude: state.location.coordinates.lng,
             },
-            Street: searchData.location.addressComponents.route,
-            Number: searchData.location.addressComponents.street_number,
-            City: searchData.location.addressComponents.city,
-            PostalCode: searchData.location.addressComponents.postalCode,
-            Province: searchData.location.addressComponents.province,
-            Region: searchData.location.addressComponents.region,
-            Country: searchData.location.addressComponents.country,
-            Continent: searchData.location.addressComponents.continent,
+            Street: state.location.addressComponents.route,
+            Number: state.location.addressComponents.street_number,
+            City: state.location.addressComponents.city,
+            PostalCode: state.location.addressComponents.postalCode,
+            Province: state.location.addressComponents.province,
+            Region: state.location.addressComponents.region,
+            Country: state.location.addressComponents.country,
+            Continent: state.location.addressComponents.continent,
           },
         };
 
@@ -283,36 +279,21 @@ function initTravelApp() {
             "/Travel/EditPickUpRequest",
             payload
           );
+
           if (result && result.isSuccess) {
-            utilities.alertSuccess("Richiesta inviata con successo!", 3000);
+            utilities.alertSuccess("Richiesta di pick-up inviata!", 2500);
+            window.location.href = `/Travel/Travel?travelId=${travelId}`;
           } else {
-            utilities.alertError("Errore nell'invio della richiesta", 3000);
+            const msg =
+              (result && result.errorMessage) ||
+              "Errore durante l'invio della richiesta";
+            utilities.alertError(msg, 3000);
           }
-        } catch (err) {
-          console.error("Edit pick-up request error:", err);
+        } catch (error) {
+          console.error("Error submitting pickup request:", error);
           utilities.alertError("Errore di connessione. Riprova.", 3000);
         }
       };
-
-      // -- WATCHERS --
-      watch(
-        () => state.location,
-        (newValue) => {
-          if (locationAutocomplete) {
-            locationAutocomplete.classList.toggle("is-valid", !!newValue);
-            locationAutocomplete.classList.remove("is-invalid");
-          }
-        }
-      );
-
-      watch(
-        () => state.submitted,
-        (isSubmitted) => {
-          if (isSubmitted && !isLocationValid.value && locationAutocomplete) {
-            locationAutocomplete.classList.add("is-invalid");
-          }
-        }
-      );
 
       // -- LIFECYCLE HOOK --
       onMounted(() => {
@@ -322,7 +303,6 @@ function initTravelApp() {
 
       return {
         state,
-        isLocationValid,
         handleRequestPickUp,
       };
     },

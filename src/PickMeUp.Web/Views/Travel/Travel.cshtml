@@ -1,3 +1,4 @@
+@using Microsoft.CodeAnalysis.Operations
 @using Microsoft.Extensions.Options
 @using PickMeUp.Core.Services.GoogleRoutes
 @using PickMeUp.Enums.UserPickUpRequest
@@ -23,34 +24,32 @@
 
 <div id="travelApp" class="container py-5" v-cloak>
     <div class="row justify-content-center">
+        <div class="col-12 col-lg-10 mb-4">
+            <div class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu-dark" aria-current="true">
+                <div class="d-flex w-100 justify-content-between mb-2">
+                    <h5 class="mb-1 text-primary">
+                        <i class="bi bi-geo-alt"></i> @Model.DepartureLocation.ReadableAddress 
+                        <i class="bi bi-arrow-right mx-2 text-muted"></i> 
+                        <i class="bi bi-geo-alt-fill"></i> @Model.DestinationLocation.ReadableAddress
+                    </h5>
+                    <small class="text-muted">@($"{Model.DepartureDate.ToString("dd MMM yyyy")} {Model.DepartureTime.ToShortTimeString()}")</small>
+                </div>
+                <div class="d-flex justify-content-between align-items-end">
+                    <div>
+                        <p class="mb-1"><i class="bi bi-person-circle"></i> Autista: @(isOwner ? "Tu" : Model.UserNominative)</p>
+                        <span class="badge bg-success rounded-pill">
+                            @(Model.TotalPassengersSeatsCount - Model.OccupiedPassengerSeatsCount) posti liberi
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
         <div class="col-12 col-lg-10">
             <div class="card shadow-sm">
                 <div class="card-body">
-                    <h1 class="h4 mb-3">
-                        @(isOwner ? "Gestisci il tuo viaggio" : $"Viaggio di {Model.UserNominative}" )
-                    </h1>
-
-                    <div class="row g-2 align-items-center mb-3">
-                        <div class="col-auto text-muted">
-                            <i class="fa-solid fa-circle-dot"></i>
-                        </div>
-                        <div class="col">
-                            <div class="text-truncate">@Model.DepartureLocation.ReadableAddress</div>
-                        </div>
-                        <div class="col-auto text-muted">
-                            <i class="fa-solid fa-arrow-down"></i>
-                        </div>
-                        <div class="col-auto text-muted">
-                            <i class="fa-solid fa-location-dot"></i>
-                        </div>
-                        <div class="col">
-                            <div class="text-truncate">@Model.DestinationLocation.ReadableAddress</div>
-                        </div>
-                    </div>
-
                     @* Pick-up requests trigger *@
-                    <div class="row mb-4">
-                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
+                    <div class="row mb-4 px-2">
+                        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
                             @(isOwner ? "Visualizza richieste di pick-up" : "Le fermate del viaggio")
                             @if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Pending, out var pendingRequests) && isOwner)
                             {
@@ -62,17 +61,11 @@
                     <div class="position-relative">
                         <div v-if="state.routeStats.visible" class="mb-2">
                             <div class="d-inline-flex align-items-center bg-light border rounded shadow-sm px-3 py-2 gap-4">
-                                
-                                <div class="d-flex align-items-center">
-                                    <i class="fa-solid fa-road text-primary me-2"></i>
+                                <div>
                                     <span class="fw-bold text-dark">{{ state.routeStats.distanceText }}</span>
-                                </div>
-
-                                <div class="d-flex align-items-center">
-                                    <i class="fa-solid fa-clock text-primary me-2"></i>
+                                    <span class="mx-2 text-dark fw-bold"> - </span>
                                     <span class="fw-bold text-dark">{{ state.routeStats.durationText }}</span>
                                 </div>
-
                             </div>
                         </div>
                         
@@ -81,16 +74,15 @@
 
                     @if (!isOwner)
                     {
-                        <div class="row mt-4">
-                            <label for="location-autocomplete" class="form-label">Luogo di Pick-Up</label>
-                            <div id="location-container"></div>
-                            
-                            <div class="invalid-feedback" v-if="state.submitted && !isLocationValid">
-                                Seleziona un indirizzo valido dai suggerimenti
+                        <div class="mt-4">
+                            <div class="mb-3">
+                                <label for="location-autocomplete" class="form-label">Luogo di Pick-Up</label>
+                                <div id="location-container"></div>
+                                <div class="invalid-feedback d-block" v-if="state.submitted && !state.location">
+                                    Seleziona un indirizzo dai suggerimenti
+                                </div>
                             </div>
-                        </div>
-                        <div class="row">
-                            <button type="button" class="btn btn-primary mt-3 col-auto" v-on:click="handleRequestPickUp()">
+                            <button type="button" @@click="handleRequestPickUp" class="btn btn-primary col-auto">
                                 Richiedi Pick-Up
                             </button>
                         </div>
@@ -108,88 +100,144 @@
 </div>
 
 <div class="modal fade" id="pickUpRequestsModal" tabindex="-1" aria-labelledby="pickUpRequestsModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pickUpRequestsModalLabel">Richieste di pick-up</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title" id="pickUpRequestsModalLabel">
+                    <i class="bi bi-map me-2"></i>Itinerario Viaggio [@($"{Model.DepartureDate:dd/MM/yyyy}")]
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body gap-3">
+            <div class="modal-body p-4" style="background-color: #1a202c;">
                 @if (Model.PickUpRequests.Length == 0)
                 {
-                    <p class="text-center text-muted">Nessuna richiesta di pick-up al momento.</p>
+                    <p class="text-center p-4">Nessuna richiesta di pick-up al momento.</p>
                 }
                 else
                 {
-                    @* Accepted requests *@
-                    if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Accepted, out var acceptedRequests))
-                    {
-                        <div class="row">
-                            <p class="row h6">Richieste accettate:</p>
-                            @foreach (var request in acceptedRequests)
+                    <div class="timeline-container">
+                        <div class="timeline-line"></div>
+                        
+                        @* Departure Section *@
+                        <div class="timeline-item">
+                            <div class="timeline-icon start">🚗</div>
+                            <div class="timeline-card start">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-success me-2">PARTENZA</span>
+                                            <span class="badge bg-primary">
+                                                <i class="bi bi-clock me-1"></i>@Model.DepartureTime.ToString("HH:mm")
+                                            </span>
+                                        </div>
+                                        <p class="mb-1 small text-dark">
+                                            <i class="bi bi-person-fill me-1"></i>Driver: <strong class="text-dark">@(isOwner ? "TU" : Model.UserNominative)</strong>
+                                        </p>
+                                        <p class="mb-0 fw-bold text-dark">
+                                            <i class="bi bi-geo-alt-fill me-1 text-success"></i>@Model.DepartureLocation.ReadableAddress
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @* Accepted requests (Pick-Up Points) *@
+                        @if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Accepted, out var acceptedRequests))
+                        {
+                            @foreach (var request in acceptedRequests.Select((r, i) => new { Request = r, Index = i }))
                             {
-                                <div class="row mb-3 p-3 border rounded">
-                                    <h6 class="mb-1">@request.UserNominative</h6>
-                                    <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
-                                    <p class="mb-1">Ore: --:--</p> 
+                                <div class="timeline-item">
+                                    <div class="timeline-icon pickup">📍</div>
+                                    <div class="timeline-card">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <div class="d-flex align-items-center mb-2">
+                                                    <span class="badge bg-primary me-2">TAPPA @(request.Index + 1)</span>
+                                                    <span class="badge bg-secondary">
+                                                        <i class="bi bi-clock me-1"></i>--:--
+                                                    </span>
+                                                </div>
+                                                <p class="mb-1 small text-dark">
+                                                    <i class="bi bi-person-circle me-1"></i>Passeggero: <strong class="text-dark">@request.Request.UserNominative</strong>
+                                                </p>
+                                                <p class="mb-0 fw-bold text-dark">
+                                                    <i class="bi bi-geo-alt-fill me-1 text-primary"></i>@request.Request.Location.ReadableAddress
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             }
+                        }
+
+                        @* Arrival Section *@
+                        <div class="timeline-item">
+                            <div class="timeline-icon end">🎯</div>
+                            <div class="timeline-card end">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-danger me-2">ARRIVO</span>
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-clock me-1"></i>--:--
+                                            </span>
+                                        </div>
+                                        <p class="mb-0 fw-bold text-dark">
+                                            <i class="bi bi-geo-alt-fill me-1 text-danger"></i>@Model.DestinationLocation.ReadableAddress
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                    }
-                    @* Pending requests *@
-                    if (isOwner)
+                    </div>
+
+                    @* Pending requests section (only for owner) *@
+                    @if (isOwner && pendingRequests is not null && pendingRequests.Any())
                     {
-                        if (pendingRequests is not null)
-                        {
-                            <div class="row">
-                                <p class="row h6">Richieste in attesa:</p>
-                                @foreach (var request in pendingRequests)
-                                {
-                                    <div class="row">
-                                        <div class="row p-3 border rounded">
-                                            <h6 class="mb-1">@request.UserNominative</h6>
-                                            <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
-                                            <p class="mb-1">Ore: --:--</p> 
+                        <div class="mt-4">
+                            <form id="bulkActionsForm" asp-controller="Travel" asp-action="EditPickUpRequestStatus" method="post">
+                                <input type="hidden" name="travelId" value="@Model.UserTravelId" />
+                                
+                                <div class="bg-dark text-white p-4 rounded-3 shadow" style="background-color: #0d1117 !important;">
+                                    <h6 class="mb-3 fw-bold text-white">
+                                        <i class="bi bi-hourglass-split me-2"></i>Richieste in attesa di approvazione
+                                    </h6>
+                                    @foreach (var request in pendingRequests)
+                                    {
+                                        <div class="form-check mb-3 p-3 bg-white text-dark border-0 rounded-3 shadow-sm pending-request-card">
+                                            <input class="form-check-input" type="checkbox" name="pickUpRequestIds" value="@request.PickUpRequestId" id="request-@request.PickUpRequestId">
+                                            <label class="form-check-label w-100 cursor-pointer" for="request-@request.PickUpRequestId">
+                                                <div class="d-flex justify-content-between align-items-start">
+                                                    <div class="flex-grow-1">
+                                                        <div class="d-flex align-items-center mb-2">
+                                                            <span class="badge bg-warning text-dark me-2">
+                                                                <i class="bi bi-clock-history me-1"></i>IN ATTESA
+                                                            </span>
+                                                        </div>
+                                                        <p class="mb-1 small text-dark">
+                                                            <i class="bi bi-person-circle me-1"></i>Passeggero: <strong class="text-dark">@request.UserNominative</strong>
+                                                        </p>
+                                                        <p class="mb-0 fw-bold text-dark">
+                                                            <i class="bi bi-geo-alt-fill me-1 text-warning"></i>@request.Location.ReadableAddress
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </label>
                                         </div>
-                                        <div class="row justify-content-end">
-                                            @* Reject action *@
-                                            <div class="col-auto">
-                                                <form asp-controller="Travel" asp-action="EditPickUpRequestStatus" method="post" class="d-inline">
-                                                    <input type="hidden" name="travelId" value="@Model.UserTravelId" />
-                                                    <input type="hidden" name="pickUpRequestId" value="@request.PickUpRequestId" />
-                                                    <input type="hidden" name="status" value="@((int)UserPickUpRequestStatus.Rejected)" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">Rifiuta</button>
-                                                </form>
-                                            </div>
-                                            @* Accept action *@
-                                            <div class="col-auto">
-                                                <form asp-controller="Travel" asp-action="EditPickUpRequestStatus" method="post" class="d-inline">
-                                                    <input type="hidden" name="travelId" value="@Model.UserTravelId" />
-                                                    <input type="hidden" name="pickUpRequestId" value="@request.PickUpRequestId" />
-                                                    <input type="hidden" name="status" value="@((int)UserPickUpRequestStatus.Accepted)" />
-                                                    <button type="submit" class="btn btn-sm btn-outline-success">Accetta</button>
-                                                </form>
-                                            </div>
-                                        </div>
+                                    }
+
+                                    <div class="d-grid gap-2 mt-4">
+                                        <button type="submit" name="status" value="@((int)UserPickUpRequestStatus.Accepted)" class="btn btn-success btn-lg">
+                                            <i class="bi bi-check-circle me-2"></i>Conferma le Richieste selezionate
+                                        </button>
+                                        <p class="text-center mb-2 small text-white-50">oppure</p>
+                                        <button type="submit" name="status" value="@((int)UserPickUpRequestStatus.Rejected)" class="btn btn-warning text-dark btn-lg">
+                                            <i class="bi bi-x-circle me-2"></i>Rifiuta le Richieste selezionate
+                                        </button>
                                     </div>
-                                }
-                            </div>
-                        }
-                        @* Rejected requests *@
-                        if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Rejected, out var rejectedRequests))
-                        {
-                            <div class="row">
-                                <p class="row h6">Richieste rifiutate:</p>
-                                @foreach (var request in rejectedRequests)
-                                {
-                                    <div class="row mb-3 p-3 border rounded">
-                                        <h6 class="mb-1">@request.UserNominative</h6>
-                                        <p class="mb-1"><strong>Indirizzo di pick-up:</strong> @request.Location.ReadableAddress</p>
-                                        <p class="mb-1">Ore: --:--</p> 
-                                    </div>
-                                }
-                            </div>
-                        }
+                                </div>
+                            </form>
+                        </div>
                     }
                 }
             </div>

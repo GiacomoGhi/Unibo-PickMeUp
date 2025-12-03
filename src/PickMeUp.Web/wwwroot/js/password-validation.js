@@ -93,14 +93,14 @@
 
   // Initialize on page load
   window.addEventListener("load", function () {
-    // Signup modal
+    // Signup page
     updatePasswordStrength(
-      "signupPassword",
-      "signupPasswordStrength",
-      "signupPasswordRequirements"
+      "Password",
+      "passwordStrength",
+      "passwordRequirements"
     );
 
-    // Reset password page (if exists)
+    // Reset password page
     updatePasswordStrength(
       "resetPassword",
       "resetPasswordStrength",

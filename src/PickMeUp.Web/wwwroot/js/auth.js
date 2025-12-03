@@ -262,7 +262,7 @@ function updateAuthUI() {
         authSection.innerHTML = `
           <div class="dropdown">
             <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
-              <img src="/images/avatar.png" alt="Avatar" style="height: 80px;" />
+              <img src="/images/avatar.svg" alt="Avatar" style="height: 80px;" />
               <p class="fs-3 fw-bold m-0">${escapeHtml(
                 data.firstName || ""
               )}</p>

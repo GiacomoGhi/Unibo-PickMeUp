@@ -330,6 +330,139 @@ internal class UserPickUpRequestService(
     }
 
     /// <inheritdoc/>
+    public async Task<Result> EditUserPickUpRequestStatusBulkAsync(EditUserPickUpRequestStatusBulkParams requestParams)
+    {
+        // Validate parameters
+        if (requestParams.UserPickUpRequestIds == null || requestParams.UserPickUpRequestIds.Count == 0)
+        {
+            return Result.InvalidArgument(nameof(requestParams.UserPickUpRequestIds));
+        }
+        if (requestParams.UserId <= 0)
+        {
+            return Result.InvalidArgument(nameof(requestParams.UserId));
+        }
+
+        // Load all pickup requests
+        var pickupRequests = await _dbContext.UserPickUpRequests
+            .Where(pr => requestParams.UserPickUpRequestIds.Contains(pr.UserPickUpRequestId)
+                      && !pr.DeletionDateTime.HasValue)
+            .ToListAsync();
+
+        if (pickupRequests.Count == 0)
+        {
+            return Result.NotFound("UserPickUpRequests");
+        }
+
+        // Get the travel ID from the first request (all should belong to the same travel)
+        var travelId = pickupRequests.First().UserTravelId;
+
+        // Verify all requests belong to the same travel
+        if (pickupRequests.Any(pr => pr.UserTravelId != travelId))
+        {
+            return Result.Error("All requests must belong to the same travel");
+        }
+
+        // Check that user is NOT the owner of any pickup request
+        if (pickupRequests.Any(pr => pr.UserId == requestParams.UserId))
+        {
+            return Result.Unauthorized();
+        }
+
+        // Load associated travel
+        var travel = await _dbContext.UserTravels
+            .Where(t => t.UserTravelId == travelId && !t.DeletionDateTime.HasValue)
+            .FirstOrDefaultAsync();
+
+        if (travel is null)
+        {
+            return Result.NotFound("UserTravel");
+        }
+
+        // Check that user IS the owner of the travel
+        if (travel.UserId != requestParams.UserId)
+        {
+            return Result.Unauthorized();
+        }
+
+        // Check that travel has not already departed
+        if (travel.DepartureDateTime <= DateTime.UtcNow)
+        {
+            return Result.Error("Cannot modify requests for a travel that has already departed");
+        }
+
+        // Calculate seat changes
+        var seatsToAdd = 0;
+        var seatsToRemove = 0;
+
+        foreach (var pickupRequest in pickupRequests)
+        {
+            // If accepting request
+            if (requestParams.Status == UserPickUpRequestStatus.Accepted
+                && pickupRequest.Status != UserPickUpRequestStatus.Accepted)
+            {
+                seatsToAdd++;
+            }
+
+            // If rejecting a previously accepted request
+            if (requestParams.Status == UserPickUpRequestStatus.Rejected
+                && pickupRequest.Status == UserPickUpRequestStatus.Accepted)
+            {
+                seatsToRemove++;
+            }
+        }
+
+        // Check available seats if accepting
+        if (seatsToAdd > 0)
+        {
+            var availableSeats = travel.TotalPassengersSeatsCount - travel.OccupiedPassengerSeatsCount;
+            if (availableSeats < seatsToAdd)
+            {
+                return Result.Error($"Not enough available seats. Available: {availableSeats}, Requested: {seatsToAdd}");
+            }
+        }
+
+        // Update occupied seats
+        travel.OccupiedPassengerSeatsCount += seatsToAdd - seatsToRemove;
+
+        // Update all request statuses
+        foreach (var pickupRequest in pickupRequests)
+        {
+            pickupRequest.Status = requestParams.Status;
+        }
+
+        // Save changes
+        await _dbContext.SaveChangesAsync();
+
+        // // Load users for email notifications
+        // var userIds = pickupRequests.Select(pr => pr.UserId).Distinct().Append(travel.UserId).ToList();
+        // var users = await _dbContext.Users
+        //     .AsNoTracking()
+        //     .Where(user => userIds.Contains(user.UserId))
+        //     .ToDictionaryAsync(user => user.UserId);
+
+        // // Send email notifications to all affected users
+        // if (users.TryGetValue(travel.UserId, out var travelOwner))
+        // {
+        //     foreach (var pickupRequest in pickupRequests)
+        //     {
+        //         if (users.TryGetValue(pickupRequest.UserId, out var requester))
+        //         {
+        //             await _emailService.SendPickUpRequestStatusChangedAsync(
+        //                 requester.Email,
+        //                 requester.FirstName,
+        //                 travelOwner.FirstName,
+        //                 requestParams.Status,
+        //                 travel.DepartureLocation.ReadableAddress,
+        //                 travel.DestinationLocation.ReadableAddress,
+        //                 travel.DepartureDateTime);
+        //         }
+        //     }
+        // }
+
+        return Result.Success();
+    }
+
+    /// <inheritdoc/>
     public async Task<Result> DeleteUserPickUpRequestAsync(DeleteEntityParams<int> requestParams)
     {
         // Validate parameters

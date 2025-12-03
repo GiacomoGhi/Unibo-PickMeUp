@@ -9,6 +9,7 @@ namespace PickMeUp.Web.Models.Auth
 
     public class LoginViewModel
     {
+        public string? ReturnUrl { get; set; }
         public string Email { get; set; } = default!;
         public string Password { get; set; } = default!;
         public bool RememberMe { get; set; }
@@ -16,8 +17,11 @@ namespace PickMeUp.Web.Models.Auth
 
     public class SignUpViewModel
     {
+        public string? ReturnUrl { get; set; }
         public string Email { get; set; } = default!;
         public string Password { get; set; } = default!;
+        [Compare("Password", ErrorMessage = "Le password non corrispondono")]
+        public string ConfirmPassword { get; set; } = default!;
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
     }

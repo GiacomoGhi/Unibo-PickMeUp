@@ -43,6 +43,14 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
             query = query
                 .Where(travel => !requestParams.UserIdsToExclude.Contains(travel.UserId));
         }
+
+        // Apply Departure Date filter
+        if (requestParams.DepartureDate.HasValue)
+        {
+            var targetDate = new DateTime(requestParams.DepartureDate.Value, TimeOnly.MinValue, DateTimeKind.Utc);
+            query = query
+                .Where(travel => travel.DepartureDateTime.Date >= targetDate);
+        }
         
         // Apply Geographic Filters (Cascade)
         query = await ApplyGeographicFilterAsync(query, requestParams.DestinationLocation, isDeparture: false);
@@ -50,7 +58,7 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
 
         // Apply ordering
         query = query
-            .OrderByDescending(travel => travel.DepartureDateTime);
+            .OrderBy(travel => travel.DepartureDateTime);
 
         // Get total count
         var totalCount = await query.CountAsync();

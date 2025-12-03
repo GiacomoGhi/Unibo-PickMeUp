@@ -8,9 +8,12 @@ function initSearchApp() {
   createApp({
     setup() {
       // -- STATE --
+      // Initialize state from server-side data if available
+      const initialFilters = window.initialFilters || {};
       const state = reactive({
-        departure: null,
-        destination: null,
+        departure: initialFilters.departure || null,
+        destination: initialFilters.destination || null,
+        departureDate: initialFilters.departureDate || "",
       });
 
       let departureAutocomplete;
@@ -47,6 +50,11 @@ function initSearchApp() {
           }
         );
 
+        // Set initial value if available
+        if (state.departure) {
+          departureAutocomplete.value = state.departure.formattedAddress;
+        }
+
         // 2. Destination Autocomplete
         destinationAutocomplete = new PlaceAutocompleteElement({
           componentRestrictions: { country: "it" },
@@ -64,6 +72,11 @@ function initSearchApp() {
             await onPlaceChangedAsync("destination", placePrediction);
           }
         );
+
+        // Set initial value if available
+        if (state.destination) {
+          destinationAutocomplete.value = state.destination.formattedAddress;
+        }
       };
 
       const onPlaceChangedAsync = async (type, placePrediction) => {

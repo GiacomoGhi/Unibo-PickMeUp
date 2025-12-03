@@ -11,12 +11,47 @@
 }
 
 <div class="container py-4">
-    
-    <div id="searchApp" class="mb-5">
-        <div class="card shadow-sm border-0">
-            <div class="card-body">
-                <h5 class="card-title mb-3">🔍 Cerca il tuo passaggio</h5>
-                
+    <div class="d-flex flex-row justify-content-center mb-4">
+        @if (Model.IsFromFindTravel)
+        {
+            <h1 class="display-4 fw-bold">Viaggi Disponibili</h1>
+        } 
+        else
+        {
+            <h1 class="display-4 fw-bold">I Tuoi Viaggi</h1>
+        }
+    </div>
+    <div class="row mb-4 align-items-center">
+        <div class="col-12 col-lg-8">
+            @if (!Model.IsFromFindTravel)
+            {
+                <div class="row gap-5">
+                    <button class="btn btn-warning text-white col-3">
+                        N richieste per te in attesa
+                    </button>
+                    <button class="btn btn-warning text-white col-3">
+                        Viaggi dove tu sei Driver
+                    </button>
+                    <button class="btn btn-warning text-white col-3">
+                        Viaggi dove tu sei Guest
+                    </button>
+                </div>
+            }
+        </div>
+        <div class="mt-4 mt-lg-0 col-12 col-lg-4 d-flex justify-content-end">
+            <div class="row gap-5">
+                <button class="btn btn-primary text-white col-5" type="button" data-bs-toggle="collapse" data-bs-target="#filtersForm" aria-expanded="false" aria-controls="filtersForm">
+                    Ricerca avanzata
+                </button>
+                <button class="btn bg-pmu-secondary text-white col-5">
+                    Annulla filtri
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="searchApp" class="mb-5">     
+        <div class="collapse" id="filtersForm">
+            <div class="card card-body">
                 <form method="get" action="@Url.Action("List", "Travel")" ref="searchForm" v-on:submit.prevent="handleSearch">
                     
                     <input type="hidden" name="IsFromFindTravel" value="true" />
@@ -48,23 +83,31 @@
                     </template>
 
                     <div class="row g-3">
-                        <div class="col-md-5">
-                            <label class="form-label small text-muted">Da dove parti?</label>
-                            <div id="departure-container"></div>
+                        <div class="col-10">
+                            <div class="row justify-content-between align-items-end">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Partenza</label>
+                                    <div id="departure-container"></div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Arrivo</label>
+                                    <div id="destination-container"></div>
+                                </div>
+                                <div class="col-md-3">
+                                    <label for="departureDate" class="form-label small fw-bold">Data</label>
+                                    <input class="form-control" type="date" name="DepartureDate" id="departureDate" v-model="state.departureDate" placeholder="GG/MM/YYYY" value="@Model.Filters.DepartureDate?.ToString("yyyy-MM-dd")" />
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-5">
-                            <label class="form-label small text-muted">Dove vuoi andare?</label>
-                            <div id="destination-container"></div>
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-primary w-100" :disabled="!isSearchValid">
-                                Cerca
+                        <div class="col-md-2 d-flex align-items-end ps-5">
+                            <button type="submit" class="btn btn-primary w-100">
+                                Trova
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
-        </div>
+        </div>     
     </div>
 
     <div class="row justify-content-center">
@@ -86,7 +129,7 @@
                 <div class="list-group shadow-sm">
                     @foreach(var travel in Model.Travels)
                     {
-                        <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action p-4 mb-2 border rounded" aria-current="true">
+                        <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu-dark" aria-current="true">
                             <div class="d-flex w-100 justify-content-between mb-2">
                                 <h5 class="mb-1 text-primary">
                                     <i class="bi bi-geo-alt"></i> @travel.DepartureAddress 
@@ -113,6 +156,38 @@
 </div>
 
 @section scripts {
+    <script>
+        // Pass server-side filter data to JavaScript
+        window.initialFilters = {
+            departure: @Html.Raw(Model.Filters.Departure != null ? System.Text.Json.JsonSerializer.Serialize(new {
+                formattedAddress = Model.Filters.Departure.ReadableAddress,
+                coordinates = new { lat = Model.Filters.Departure.Coordinates.Latitude, lng = Model.Filters.Departure.Coordinates.Longitude },
+                addressComponents = new {
+                    street_number = Model.Filters.Departure.Number,
+                    route = Model.Filters.Departure.Street,
+                    city = Model.Filters.Departure.City,
+                    postalCode = Model.Filters.Departure.PostalCode,
+                    province = Model.Filters.Departure.Province,
+                    region = Model.Filters.Departure.Region,
+                    country = Model.Filters.Departure.Country
+                }
+            }) : "null"),
+            destination: @Html.Raw(Model.Filters.Destination != null ? System.Text.Json.JsonSerializer.Serialize(new {
+                formattedAddress = Model.Filters.Destination.ReadableAddress,
+                coordinates = new { lat = Model.Filters.Destination.Coordinates.Latitude, lng = Model.Filters.Destination.Coordinates.Longitude },
+                addressComponents = new {
+                    street_number = Model.Filters.Destination.Number,
+                    route = Model.Filters.Destination.Street,
+                    city = Model.Filters.Destination.City,
+                    postalCode = Model.Filters.Destination.PostalCode,
+                    province = Model.Filters.Destination.Province,
+                    region = Model.Filters.Destination.Region,
+                    country = Model.Filters.Destination.Country
+                }
+            }) : "null"),
+            departureDate: '@Model.Filters.DepartureDate?.ToString("yyyy-MM-dd")'
+        };
+    </script>
     <script src="~/js/search-travel.js" asp-append-version="true"></script>
     
     <script async

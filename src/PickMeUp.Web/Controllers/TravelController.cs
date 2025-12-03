@@ -34,7 +34,7 @@ public partial class TravelController : Controller
     [HttpGet]
     public virtual IActionResult Create()
     {
-        return View("Create");
+        return View();
     }
 
     [HttpGet]
@@ -53,7 +53,8 @@ public partial class TravelController : Controller
                 
                 // Pass the mapped locations
                 DepartureLocation = request.Departure?.ToServiceModel(),
-                DestinationLocation = request.Destination?.ToServiceModel()
+                DestinationLocation = request.Destination?.ToServiceModel(),
+                DepartureDate = request.DepartureDate
             });
 
         // Check error
@@ -65,6 +66,8 @@ public partial class TravelController : Controller
 
         return View(new TravelListViewModel
         {
+            IsFromFindTravel = request.IsFromFindTravel,
+            Filters = request,
             Travels = [.. listTravelsResult.Data!.Items
                 .Select(travel => new TravelListItemViewModel
                 {
@@ -205,8 +208,13 @@ public partial class TravelController : Controller
     }
 
     [HttpPost]
-    public virtual async Task<IActionResult> EditPickUpRequest([FromBody] PickUpRequestViewModel model)
+    public virtual async Task<ControllerResult> EditPickUpRequest([FromBody] PickUpRequestViewModel model)
     {
+        if (!ModelState.IsValid)
+        {
+            return ControllerResult.Error("Dati non validi. Seleziona un indirizzo dai suggerimenti.");
+        }
+
         var editPickUpRequestResult = await _userPickUpRequestService
             .EditUserPickUpRequestAsync(
                 new()
@@ -224,21 +232,29 @@ public partial class TravelController : Controller
         // Check error
         if (editPickUpRequestResult.HasNonSuccessStatusCode)
         {
-            AlertHelper.AddError(this, editPickUpRequestResult.ErrorMessage);
+            return ControllerResult.Error(editPickUpRequestResult.ErrorMessage);
         }
 
-        return RedirectToAction(nameof(Travel), new { travelId = model.TravelId });
+        AlertHelper.AddSuccess(this, "Richiesta di pick-up inviata con successo!");
+        return ControllerResult.Success(new { TravelId = model.TravelId });
     }
          
     [HttpPost]
-    public virtual async Task<IActionResult> EditPickUpRequestStatus([FromForm] int travelId, [FromForm] int pickUpRequestId, [FromForm] UserPickUpRequestStatus status)
+    public virtual async Task<IActionResult> EditPickUpRequestStatus([FromForm] int travelId, [FromForm] int[] pickUpRequestIds, [FromForm] UserPickUpRequestStatus status)
     {
+        // Validate that at least one request is selected
+        if (pickUpRequestIds == null || pickUpRequestIds.Length == 0)
+        {
+            AlertHelper.AddWarning(this, "Seleziona almeno una richiesta");
+            return RedirectToAction(nameof(Travel), new { travelId });
+        }
+
         var editPickUpRequestResult = await _userPickUpRequestService
-            .EditUserPickUpRequestStatusAsync(
+            .EditUserPickUpRequestStatusBulkAsync(
                 new()
                 {
                     UserId = this.GetUserId(),
-                    UserPickUpRequestId = pickUpRequestId,
+                    UserPickUpRequestIds = [.. pickUpRequestIds],
                     Status = status,
                 });
 
@@ -246,6 +262,11 @@ public partial class TravelController : Controller
         if (editPickUpRequestResult.HasNonSuccessStatusCode)
         {
             AlertHelper.AddError(this, editPickUpRequestResult.ErrorMessage);
+        }
+        else
+        {
+            var action = status == UserPickUpRequestStatus.Accepted ? "accettate" : "rifiutate";
+            AlertHelper.AddSuccess(this, $"{pickUpRequestIds.Length} richieste {action} con successo");
         }        
         
         return RedirectToAction(nameof(Travel), new { travelId });
