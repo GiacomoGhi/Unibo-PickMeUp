@@ -67,7 +67,7 @@ internal class UserPickUpRequestConfiguration : IEntityTypeConfiguration<UserPic
 
         // One-to-many relationship with UserTravel
         builder.HasOne(e => e.UserTravel)
-            .WithMany()
+            .WithMany(ut => ut.UserPickUpRequests)
             .HasForeignKey(e => e.UserTravelId);
 
         // One-to-many relationship with Location for PickUpPointLocation

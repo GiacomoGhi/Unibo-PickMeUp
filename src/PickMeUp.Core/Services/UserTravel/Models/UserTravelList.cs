@@ -9,6 +9,11 @@ public class UserTravelList
     /// </summary>
     public int UserTravelId { get; set; }
 
+    /// <summary
+    /// Identifier of the user that created the travel.
+    /// </summary>
+    public int UserId { get; set; }
+
     /// <summary>
     /// Nominative of the user that created the travel.
     /// </summary>
@@ -38,4 +43,14 @@ public class UserTravelList
     /// Address of the destination location.
     /// </summary>
     public string DestinationAddress { get; set; } = default!;
+
+    /// <summary>
+    /// Ids of the users that have an accepted pick-up request for this travel.
+    /// </summary>
+    public int[] AcceptedPickUpRequestUserIds { get; set; } = [];
+
+    /// <summary>
+    /// Ids of the users that have a pending pick-up request for this travel.
+    /// </summary>
+    public int[] PendingPickUpRequestUserIds { get; set; } = [];
 }

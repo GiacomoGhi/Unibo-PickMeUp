@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
+using System.Collections.Generic;
 
 namespace PickMeUp.Core.Database.Models;
 
@@ -60,6 +61,11 @@ internal class UserTravel
     /// Navigation property to the associated destination location linked using <see cref="DestinationLocationId"/>.
     /// </summary>
     public Location DestinationLocation { get; set; } = default!;
+
+    /// <summary>
+    /// Navigation property to the associated user pick-up requests.
+    /// </summary>
+    public List<UserPickUpRequest> UserPickUpRequests { get; set; } = [];
 }
 
 internal class UserTravelConfiguration : IEntityTypeConfiguration<UserTravel>

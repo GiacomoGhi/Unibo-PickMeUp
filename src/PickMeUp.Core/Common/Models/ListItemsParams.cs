@@ -1,18 +1,28 @@
 ﻿using System;
+using PickMeUp.Enums.UserTravel;
 
 namespace PickMeUp.Core.Common.Models;
 
 public class ListItemsParams : ParamsBase
 {
     /// <summary>
-    /// IDs of the users of whom to include travels.
+    /// Indicates if the request is from the "Find Travel" feature.
+    /// If false, the request is from the "My Travels" section and 
+    /// It will show all travels where the user is involved.
     /// </summary>
-    public int[] UserIdsToInclude { get; set; } = [];
+    public bool IsFromFindTravel { get; set; } = false;
 
     /// <summary>
-    /// IDs of the users of whom to exclude travels.
+    /// Indicates if only travels with pending pick-up requests should be shown.
+    /// (Other filters will be ignored in this case.)
     /// </summary>
-    public int[] UserIdsToExclude { get; set; } = [];
+    public bool ShowOnlyTravelsWithPendingPickUpRequests { get; set; } = false;
+
+    /// <summary>
+    /// Role of the user in the travel to filter travels.
+    /// (Other filters will be ignored in this case.)
+    /// </summary>
+    public UserTravelRole ShowOnlyTravelsWithRole { get; set; }
 
     /// <summary>
     /// Destination location to filter travels.

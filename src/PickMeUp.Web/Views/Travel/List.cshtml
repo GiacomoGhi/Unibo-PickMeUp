@@ -1,5 +1,6 @@
 @using Microsoft.Extensions.Options
 @using PickMeUp.Core.Services.GoogleRoutes
+@using PickMeUp.Enums.UserTravel
 @using PickMeUp.Web.Models.Travel
 
 @model TravelListViewModel
@@ -8,6 +9,9 @@
 @{
     ViewData["Title"] = "Lista Viaggi - Pick-me-UP";
     Layout = "_Layout";
+    var currentUserId = int.TryParse(
+        this.User!.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, 
+        out var userId) ? userId : (int?)null;
 }
 
 <div class="container py-4">
@@ -26,15 +30,24 @@
             @if (!Model.IsFromFindTravel)
             {
                 <div class="row gap-5">
-                    <button class="btn btn-warning text-white col-3">
-                        N richieste per te in attesa
-                    </button>
-                    <button class="btn btn-warning text-white col-3">
-                        Viaggi dove tu sei Driver
-                    </button>
-                    <button class="btn btn-warning text-white col-3">
-                        Viaggi dove tu sei Guest
-                    </button>
+                    @if(Model.TotalTravelsWithPendingPickUpRequestsCount > 0)
+                    {
+                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithPendingPickUpRequests = true })" class="btn btn-warning text-white col-3">
+                            Richieste in attesa: <b>@Model.TotalTravelsWithPendingPickUpRequestsCount</b>
+                        </a>
+                    }
+                    @if(Model.TotalTravelsAsDriver > 0)
+                    {
+                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Driver })" class="btn btn-warning text-white col-3">
+                            Viaggi dove sei Driver: <b>@Model.TotalTravelsAsDriver</b>
+                        </a>
+                    }
+                    @if(Model.TotalTravelsAsGuest > 0)
+                    {
+                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Guest })" class="btn btn-warning text-white col-3">
+                            Viaggi dove sei Guest: <b>@Model.TotalTravelsAsGuest</b>
+                        </a>
+                    }
                 </div>
             }
         </div>
@@ -43,9 +56,9 @@
                 <button class="btn btn-primary text-white col-5" type="button" data-bs-toggle="collapse" data-bs-target="#filtersForm" aria-expanded="false" aria-controls="filtersForm">
                     Ricerca avanzata
                 </button>
-                <button class="btn bg-pmu-secondary text-white col-5">
+                <a href="@Url.Action("List", "Travel", new { IsFromFindTravel = Model.IsFromFindTravel })" class="btn bg-pmu-secondary text-white col-5">
                     Annulla filtri
-                </button>
+                </a>
             </div>
         </div>
     </div>
@@ -54,7 +67,7 @@
             <div class="card card-body">
                 <form method="get" action="@Url.Action("List", "Travel")" ref="searchForm" v-on:submit.prevent="handleSearch">
                     
-                    <input type="hidden" name="IsFromFindTravel" value="true" />
+                    <input type="hidden" name="IsFromFindTravel" value="@Model.IsFromFindTravel.ToString().ToLower()" />
 
                     <template v-if="state.departure">
                         <input type="hidden" name="Departure.ReadableAddress" :value="state.departure.formattedAddress" />
@@ -83,23 +96,23 @@
                     </template>
 
                     <div class="row g-3">
-                        <div class="col-10">
+                        <div class="col-lg-10">
                             <div class="row justify-content-between align-items-end">
-                                <div class="col-md-4">
+                                <div class="col-lg-4">
                                     <label class="form-label small fw-bold">Partenza</label>
                                     <div id="departure-container"></div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-lg-4">
                                     <label class="form-label small fw-bold">Arrivo</label>
                                     <div id="destination-container"></div>
                                 </div>
-                                <div class="col-md-3">
+                                <div class="col-lg-3">
                                     <label for="departureDate" class="form-label small fw-bold">Data</label>
                                     <input class="form-control" type="date" name="DepartureDate" id="departureDate" v-model="state.departureDate" placeholder="GG/MM/YYYY" value="@Model.Filters.DepartureDate?.ToString("yyyy-MM-dd")" />
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-2 d-flex align-items-end ps-5">
+                        <div class="col-lg-2 d-flex align-items-end ps-lg-5">
                             <button type="submit" class="btn btn-primary w-100">
                                 Trova
                             </button>
@@ -140,10 +153,22 @@
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div>
-                                    <p class="mb-1"><i class="bi bi-person-circle"></i> Autista: @travel.UserNominative</p>
-                                    <span class="badge bg-success rounded-pill">
+                                    <p class="mb-1"><i class="bi bi-person-circle"></i> Driver: @(travel.UserId == currentUserId ? "Tu" : travel.UserNominative)</p>
+                                    <span class="badge bg-success rounded-pill me-2">
                                         @(travel.TotalPassengersSeatsCount - travel.OccupiedPassengerSeatsCount) posti liberi
                                     </span>
+                                    @if(travel.PendingPickUpRequestUserIds.Contains(currentUserId!.Value))
+                                    {
+                                        <span class="badge bg-warning rounded-pill">
+                                            tua richiesta in attesa
+                                        </span>
+                                    }
+                                    else if (travel.PendingPickUpRequestUserIds.Length > 0)
+                                    {
+                                        <span class="badge bg-pmu-primary text-dark rounded-pill">
+                                            @travel.PendingPickUpRequestUserIds.Length richieste in attesa
+                                        </span>
+                                    }
                                 </div>
                                 <small class="text-muted">Clicca per dettagli</small>
                             </div>

@@ -8,7 +8,7 @@ public interface IUserTravelService
     /// <summary>
     /// Provides a list of user travels according to the specified parameters.
     /// </summary>
-    public Task<Result<ListItemsResult<UserTravelList>>> ListUserTravelAsync(ListItemsParams requestParams);
+    public Task<Result<ListUserTravelResult>> ListUserTravelAsync(ListItemsParams requestParams);
 
     /// <summary>
     /// Returns a user travel.

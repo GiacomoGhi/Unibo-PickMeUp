@@ -47,11 +47,10 @@ public partial class TravelController : Controller
         var listTravelsResult = await _userTravelService
             .ListUserTravelAsync(new()
             {
-                // Logic for Include/Exclude based on the flag
-                UserIdsToInclude = request.IsFromFindTravel ? [] : [currentUserId],
-                UserIdsToExclude = request.IsFromFindTravel ? [currentUserId] : [],
-                
-                // Pass the mapped locations
+                UserId = currentUserId,
+                IsFromFindTravel = request.IsFromFindTravel,
+                ShowOnlyTravelsWithRole = request.ShowOnlyTravelsWithRole,
+                ShowOnlyTravelsWithPendingPickUpRequests = request.ShowOnlyTravelsWithPendingPickUpRequests,
                 DepartureLocation = request.Departure?.ToServiceModel(),
                 DestinationLocation = request.Destination?.ToServiceModel(),
                 DepartureDate = request.DepartureDate
@@ -68,16 +67,22 @@ public partial class TravelController : Controller
         {
             IsFromFindTravel = request.IsFromFindTravel,
             Filters = request,
+            TotalTravelsWithPendingPickUpRequestsCount = listTravelsResult.Data!.TotalTravelsWithPendingPickUpRequestsCount,
+            TotalTravelsAsDriver = listTravelsResult.Data!.TotalTravelsAsDriver,
+            TotalTravelsAsGuest = listTravelsResult.Data!.TotalTravelsAsGuest,
             Travels = [.. listTravelsResult.Data!.Items
                 .Select(travel => new TravelListItemViewModel
                 {
                     UserTravelId = travel.UserTravelId,
+                    UserId = travel.UserId,
                     UserNominative = travel.UserNominative,
                     TotalPassengersSeatsCount = travel.TotalPassengersSeatsCount,
                     OccupiedPassengerSeatsCount = travel.OccupiedPassengerSeatsCount,
                     DepartureAddress = travel.DepartureAddress,
                     DepartureDateTime = travel.DepartureDateTime,
                     DestinationAddress = travel.DestinationAddress,
+                    AcceptedPickUpRequestUserIds = travel.AcceptedPickUpRequestUserIds,
+                    PendingPickUpRequestUserIds = travel.PendingPickUpRequestUserIds,
                 })],
         });
     }
@@ -85,11 +90,12 @@ public partial class TravelController : Controller
     [HttpGet]
     public virtual async Task<IActionResult> Travel([FromQuery] int travelId)
     {
+        var currentUserId = this.GetUserId();
         var getUserTravelResult = await _userTravelService
             .GetUserTravelAsync(
                 new()
                 {
-                    UserId = this.GetUserId(),
+                    UserId = currentUserId,
                     EntityId = travelId,
                 });
 
@@ -101,6 +107,38 @@ public partial class TravelController : Controller
             return RedirectToAction(nameof(HomeController.Landing), "Home");
         }
         var userTravel = getUserTravelResult.Data!;
+
+        // Prepare pick-up request for current user
+        var currentUserPickUpRequestLookup = userTravel.TravelPickUpRequests
+            .FirstOrDefault(pickUpRequest => pickUpRequest.UserId == currentUserId);
+        PickUpRequestViewModel? currentUserPickUpRequest = null;
+        if (currentUserPickUpRequestLookup != null)
+        {
+            var getPickUpRequestResult = await _userPickUpRequestService
+                .GetUserPickUpRequest(
+                    new()
+                    {
+                        UserId = currentUserId,
+                        EntityId = currentUserPickUpRequestLookup.UserPickUpRequestId,
+                    });
+
+            // Check error
+            if (getPickUpRequestResult.HasNonSuccessStatusCode)
+            {
+                AlertHelper.AddError(this, getPickUpRequestResult.ErrorMessage);
+                return RedirectToAction(nameof(HomeController.Landing), "Home");
+            }
+
+            // Map to ViewModel
+            currentUserPickUpRequest = new PickUpRequestViewModel
+            {
+                PickUpRequestId = getPickUpRequestResult.Data!.UserPickUpRequestId,
+                TravelId = getPickUpRequestResult.Data.UserTravelId,
+                Location = getPickUpRequestResult.Data.Location.ToViewModel(),
+                Status = getPickUpRequestResult.Data.Status,
+            };
+        }
+        
 
         // Get route using Google Routes
         var getGoogleRoutesResult = await _googleRoutesService
@@ -142,8 +180,10 @@ public partial class TravelController : Controller
             DepartureDate = DateOnly.FromDateTime(userTravel.DepartureDateTime), 
             DepartureTime = TimeOnly.FromDateTime(userTravel.DepartureDateTime),
             TotalPassengersSeatsCount = userTravel.TotalPassengersSeatsCount,
+            OccupiedPassengerSeatsCount = userTravel.OccupiedPassengerSeatsCount,
             DepartureLocation = userTravel.DepartureLocation.ToViewModel(),
             DestinationLocation = userTravel.DestinationLocation.ToViewModel(),
+            CurrentUserPickUpRequest = currentUserPickUpRequest,
             PickUpRequests = [.. userTravel.TravelPickUpRequests
                 .Select(pickUpRequest => new PickUpRequestLookupViewModel
                 {
@@ -269,6 +309,30 @@ public partial class TravelController : Controller
             AlertHelper.AddSuccess(this, $"{pickUpRequestIds.Length} richieste {action} con successo");
         }        
         
+        return RedirectToAction(nameof(Travel), new { travelId });
+    }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> DeletePickUpRequest([FromForm] int travelId, [FromForm] int pickUpRequestId)
+    {
+        var deletePickUpRequestResult = await _userPickUpRequestService
+            .DeleteUserPickUpRequestAsync(
+                new()
+                {
+                    UserId = this.GetUserId(),
+                    EntityId = pickUpRequestId,
+                });
+        
+        // Check error
+        if (deletePickUpRequestResult.HasNonSuccessStatusCode)
+        {
+            AlertHelper.AddError(this, deletePickUpRequestResult.ErrorMessage);
+        }
+        else
+        {
+            AlertHelper.AddSuccess(this, "Richiesta di pick-up eliminata con successo!");
+        }
+
         return RedirectToAction(nameof(Travel), new { travelId });
     }
   

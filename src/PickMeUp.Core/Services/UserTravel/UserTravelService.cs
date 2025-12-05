@@ -3,6 +3,8 @@ using PickMeUp.Core.Common.Extensions;
 using PickMeUp.Core.Common.Models;
 using PickMeUp.Core.Database;
 using PickMeUp.Core.Services.UserPickUpRequest;
+using PickMeUp.Enums.UserPickUpRequest;
+using PickMeUp.Enums.UserTravel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +17,7 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
     private readonly PickMeUpDbContext _dbContext = dbContext;
 
     /// <inheritdoc/>
-    public async Task<Result<ListItemsResult<UserTravelList>>> ListUserTravelAsync(ListItemsParams requestParams)
+    public async Task<Result<ListUserTravelResult>> ListUserTravelAsync(ListItemsParams requestParams)
     {
         // Validate parameters
         // if (requestParams.Skip < 0)
@@ -26,39 +28,15 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
         // {
         //     return Result.InvalidArgument(nameof(requestParams.Take));
         // }
+        
+        // Validate UserId
+        if (requestParams.UserId <= 0)
+        {
+            return Result.InvalidArgument(nameof(requestParams.UserId));
+        }
 
         // Build query
-        var query = _dbContext.UserTravels
-            .AsNoTracking()
-            .Where(travel => !travel.DeletionDateTime.HasValue);
-
-        // Apply filters
-        if (requestParams.UserIdsToInclude.Length > 0)
-        {
-            query = query
-                .Where(travel => requestParams.UserIdsToInclude.Contains(travel.UserId));
-        }
-        if (requestParams.UserIdsToExclude.Length > 0)
-        {
-            query = query
-                .Where(travel => !requestParams.UserIdsToExclude.Contains(travel.UserId));
-        }
-
-        // Apply Departure Date filter
-        if (requestParams.DepartureDate.HasValue)
-        {
-            var targetDate = new DateTime(requestParams.DepartureDate.Value, TimeOnly.MinValue, DateTimeKind.Utc);
-            query = query
-                .Where(travel => travel.DepartureDateTime.Date >= targetDate);
-        }
-        
-        // Apply Geographic Filters (Cascade)
-        query = await ApplyGeographicFilterAsync(query, requestParams.DestinationLocation, isDeparture: false);
-        query = await ApplyGeographicFilterAsync(query, requestParams.DepartureLocation, isDeparture: true);
-
-        // Apply ordering
-        query = query
-            .OrderBy(travel => travel.DepartureDateTime);
+        var query = await CreateListQueryAsync(requestParams);
 
         // Get total count
         var totalCount = await query.CountAsync();
@@ -76,6 +54,14 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
                 travel.DepartureLocationId,
                 travel.DestinationLocationId,
                 travel.DepartureDateTime,
+                PickUpRequestsData = travel.UserPickUpRequests
+                    .Where(request => !request.DeletionDateTime.HasValue)
+                    .Select(request => 
+                        new
+                        {
+                            request.UserId,
+                            request.Status
+                        })
             })
             .ToArrayAsync();
 
@@ -99,10 +85,41 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
                 location => location.LocationId,
                 location => location.ReadableAddress);
 
+        // Get generic total count if needed
+        var totalTravelsWithPendingPickUpRequestsCount = 0;
+        var totalTravelsAsDriver = 0;
+        var totalTravelsAsGuest = 0;
+        if (!requestParams.IsFromFindTravel)
+        {
+            totalTravelsWithPendingPickUpRequestsCount = await _dbContext.UserTravels
+                .AsNoTracking()
+                .Where(travel => !travel.DeletionDateTime.HasValue
+                              && travel.UserId == requestParams.UserId
+                              && travel.UserPickUpRequests
+                                  .Any(request => request.Status == UserPickUpRequestStatus.Pending
+                                               && !request.DeletionDateTime.HasValue))
+                .CountAsync();
+
+            totalTravelsAsDriver = await _dbContext.UserTravels
+                .AsNoTracking()
+                .Where(travel => !travel.DeletionDateTime.HasValue
+                              && travel.UserId == requestParams.UserId)
+                .CountAsync();
+
+            totalTravelsAsGuest = await _dbContext.UserTravels
+                .AsNoTracking()
+                .Where(travel => !travel.DeletionDateTime.HasValue
+                              && travel.UserPickUpRequests
+                                  .Any(request => request.UserId == requestParams.UserId
+                                               && !request.DeletionDateTime.HasValue))
+                .CountAsync();
+        }
+
         // Map to service model
         var items = travels
             .Select(t => new UserTravelList
             {
+                UserId = t.UserId,
                 UserTravelId = t.UserTravelId,
                 UserNominative = users.GetValueOrDefault(t.UserId) ?? "Unknown User",
                 TotalPassengersSeatsCount = t.TotalPassengersSeatsCount,
@@ -110,13 +127,22 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
                 DepartureDateTime = t.DepartureDateTime,
                 DepartureAddress = locations.GetValueOrDefault(t.DepartureLocationId) ?? "Unknown Location",
                 DestinationAddress = locations.GetValueOrDefault(t.DestinationLocationId) ?? "Unknown Location",
+                AcceptedPickUpRequestUserIds = [.. t.PickUpRequestsData
+                    .Where(request => request.Status == UserPickUpRequestStatus.Accepted)
+                    .Select(request => request.UserId)],
+                PendingPickUpRequestUserIds = [.. t.PickUpRequestsData
+                    .Where(request => request.Status == UserPickUpRequestStatus.Pending)
+                    .Select(request => request.UserId)]
             })
             .ToArray();
 
-        return Result.Success(new ListItemsResult<UserTravelList>
+        return Result.Success(new ListUserTravelResult
         {
             Items = items,
-            TotalCount = totalCount
+            TotalCount = totalCount,
+            TotalTravelsWithPendingPickUpRequestsCount = totalTravelsWithPendingPickUpRequestsCount,
+            TotalTravelsAsDriver = totalTravelsAsDriver,
+            TotalTravelsAsGuest = totalTravelsAsGuest,
         });
     }
 
@@ -382,6 +408,83 @@ internal class UserTravelService(PickMeUpDbContext dbContext) : IUserTravelServi
         });
     }
     
+    /// <summary>
+    /// Creates and configures the IQueryable for listing user travels based on the provided parameters.
+    /// </summary>
+    private async Task<IQueryable<DatabaseModels.UserTravel>> CreateListQueryAsync(ListItemsParams requestParams)
+    {
+        var query = _dbContext.UserTravels
+            .AsNoTracking()
+            .Where(travel => !travel.DeletionDateTime.HasValue);
+
+        // Apply filters
+        if (requestParams.IsFromFindTravel)
+        {
+            query = query
+                .Where(travel => travel.UserId != requestParams.UserId);
+        }
+        else
+        {
+            // Filter only travels owned by the user and where there is a pending pick up request
+            if (requestParams.ShowOnlyTravelsWithPendingPickUpRequests)
+            {
+                query = query
+                    // Filter by user id
+                    .Where(travel => travel.UserId == requestParams.UserId
+                                    // Filter by pending pick up requests
+                                  && travel.UserPickUpRequests
+                                    .Any(request => request.Status == UserPickUpRequestStatus.Pending
+                                                 && !request.DeletionDateTime.HasValue));
+
+                return query;
+            }
+            
+            // Filter by user role in the travel
+            if (requestParams.ShowOnlyTravelsWithRole != UserTravelRole.Any)
+            {
+                // Driver role
+                if (requestParams.ShowOnlyTravelsWithRole == UserTravelRole.Driver)
+                {
+                    query = query
+                        .Where(travel => travel.UserId == requestParams.UserId);
+                    return query;
+                }
+
+                // Guest role   
+                query = query
+                    .Where(travel => travel.UserPickUpRequests
+                        .Any(request => request.UserId == requestParams.UserId
+                                        && !request.DeletionDateTime.HasValue));
+                return query;
+            }
+            
+            // All travels where the user is involved both as driver or guest
+            query = query
+                .Where(travel => travel.UserId == requestParams.UserId
+                                || travel.UserPickUpRequests
+                                .Any(request => request.UserId == requestParams.UserId
+                                                && !request.DeletionDateTime.HasValue));
+        }
+
+        // Apply Departure Date filter
+        if (requestParams.DepartureDate.HasValue)
+        {
+            var targetDate = new DateTime(requestParams.DepartureDate.Value, TimeOnly.MinValue, DateTimeKind.Utc);
+            query = query
+                .Where(travel => travel.DepartureDateTime.Date >= targetDate);
+        }
+        
+        // Apply Geographic Filters (Cascade)
+        query = await ApplyGeographicFilterAsync(query, requestParams.DestinationLocation, isDeparture: false);
+        query = await ApplyGeographicFilterAsync(query, requestParams.DepartureLocation, isDeparture: true);
+
+        // Apply ordering
+        query = query
+            .OrderBy(travel => travel.DepartureDateTime);
+
+        return query;
+    }
+
     /// <summary>
     /// Applies a cascading geographic filter logic. It tries to match the exact address first, 
     /// then relaxes the constraints (Street -> City -> Province -> Region).

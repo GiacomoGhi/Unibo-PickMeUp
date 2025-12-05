@@ -17,7 +17,26 @@ function initTravelApp() {
         },
         location: null,
         submitted: false,
+        pickUpRequestId: 0,
+        pickUpRequestStatus: null,
+        currentAddress: null, // For display purposes when editing
       });
+
+      // Initialize from existing pickup request if available
+      if (window.routeData && window.routeData.currentUserPickUpRequest) {
+        const existingRequest = window.routeData.currentUserPickUpRequest;
+        state.pickUpRequestId = existingRequest.pickUpRequestId;
+        state.pickUpRequestStatus = existingRequest.status;
+        state.currentAddress = existingRequest.location.formattedAddress;
+        // Keep existing location data for when user doesn't change address
+        state.location = {
+          placeId: null,
+          formattedAddress: existingRequest.location.formattedAddress,
+          name: existingRequest.location.formattedAddress,
+          coordinates: existingRequest.location.coordinates,
+          addressComponents: existingRequest.location.addressComponents,
+        };
+      }
 
       let map = null;
       let locationAutocomplete = null;
@@ -134,20 +153,25 @@ function initTravelApp() {
 
       // -- METHODS: PLACES (Form) --
       const initGooglePlaces = async () => {
-        // Verifica se esiste il container (potrebbe non esserci se sono l'owner)
         const container = document.getElementById("location-container");
         if (!container) return;
 
+        // Import library
         const { PlaceAutocompleteElement } = await google.maps.importLibrary(
           "places"
         );
 
+        // Create the element
         locationAutocomplete = new PlaceAutocompleteElement({
           componentRestrictions: { country: "it" },
         });
+
         locationAutocomplete.id = "location-autocomplete";
-        locationAutocomplete.placeholder = "Inserisci indirizzo di pick-up";
-        locationAutocomplete.className = "form-control";
+        locationAutocomplete.className = "form-control bg-pmu-dark";
+        locationAutocomplete.placeholder =
+          state.pickUpRequestId > 0
+            ? "Inserisci nuovo indirizzo per modificare"
+            : "Inserisci indirizzo di pick-up";
 
         container.appendChild(locationAutocomplete);
 
@@ -252,10 +276,12 @@ function initTravelApp() {
         }
 
         const travelId = window.routeData.travelId;
+        const isEditing = state.pickUpRequestId > 0;
         const payload = {
           TravelId: travelId,
-          PickUpRequestId: 0,
-          Status: 0, // Pending
+          PickUpRequestId: state.pickUpRequestId,
+          Status:
+            state.pickUpRequestStatus !== null ? state.pickUpRequestStatus : 0, // Maintain status when editing, Pending when creating
           Location: {
             LocationId: 0,
             ReadableAddress: state.location.formattedAddress,
@@ -281,7 +307,10 @@ function initTravelApp() {
           );
 
           if (result && result.isSuccess) {
-            utilities.alertSuccess("Richiesta di pick-up inviata!", 2500);
+            const successMsg = isEditing
+              ? "Richiesta di pick-up aggiornata!"
+              : "Richiesta di pick-up inviata!";
+            utilities.alertSuccess(successMsg, 2500);
             window.location.href = `/Travel/Travel?travelId=${travelId}`;
           } else {
             const msg =
@@ -295,6 +324,47 @@ function initTravelApp() {
         }
       };
 
+      // -- METHODS: DELETE --
+      const handleDeletePickUpRequest = async () => {
+        if (
+          !confirm("Sei sicuro di voler eliminare la tua richiesta di pick-up?")
+        ) {
+          return;
+        }
+
+        const travelId = window.routeData.travelId;
+        const formData = new FormData();
+        formData.append("travelId", travelId);
+        formData.append("pickUpRequestId", state.pickUpRequestId);
+
+        try {
+          const response = await fetch("/Travel/DeletePickUpRequest", {
+            method: "POST",
+            body: formData,
+          });
+
+          if (response.ok) {
+            utilities.alertSuccess("Richiesta eliminata con successo!", 2500);
+            window.location.href = `/Travel/Travel?travelId=${travelId}`;
+          } else {
+            utilities.alertError("Errore durante l'eliminazione", 3000);
+          }
+        } catch (error) {
+          console.error("Error deleting pickup request:", error);
+          utilities.alertError("Errore di connessione. Riprova.", 3000);
+        }
+      };
+
+      // -- COMPUTED PROPERTIES --
+      const isEditing = computed(() => state.pickUpRequestId > 0);
+      const canEdit = computed(
+        () =>
+          state.pickUpRequestStatus === null || state.pickUpRequestStatus === 0
+      );
+      const canDelete = computed(() => state.pickUpRequestId > 0);
+      const isPending = computed(() => state.pickUpRequestStatus === 0);
+      const isAccepted = computed(() => state.pickUpRequestStatus === 1);
+
       // -- LIFECYCLE HOOK --
       onMounted(() => {
         initMap();
@@ -304,6 +374,12 @@ function initTravelApp() {
       return {
         state,
         handleRequestPickUp,
+        handleDeletePickUpRequest,
+        isEditing,
+        canEdit,
+        canDelete,
+        isPending,
+        isAccepted,
       };
     },
   }).mount("#travelApp");

@@ -42,4 +42,6 @@ public class TravelViewModel
     public TravelRouteInfoViewModel? Route { get; set; }
 
     public PickUpRequestLookupViewModel[] PickUpRequests { get; set; } = [];
+
+    public PickUpRequestViewModel? CurrentUserPickUpRequest { get; set; }
 }
