@@ -12062,6 +12062,7 @@ body {
   font-size: 1rem;
   font-weight: 400;
   background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
   margin: 0;
   padding: 0;
 }
@@ -12108,6 +12109,10 @@ body {
 
 .pmu-password-info-btn {
   cursor: pointer;
+  color: var(--bs-info);
+  text-decoration: none;
+}
+.pmu-password-info-btn:hover {
   color: var(--bs-info);
 }
 
@@ -12200,6 +12205,38 @@ body {
   background-color: #ffffff !important;
 }
 
+.pmu-timeline-modal-body {
+  background-color: #1a202c;
+  color: white;
+}
+
+[data-bs-theme=light] .pmu-timeline-modal-body {
+  background-color: #f7fafc;
+  color: var(--bs-body-color);
+}
+
+.timeline-text {
+  color: white !important;
+}
+
+[data-bs-theme=light] .timeline-text {
+  color: var(--bs-body-color) !important;
+}
+
+.pmu-pending-requests-container {
+  background-color: #0d1117;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme=light] .pmu-pending-requests-container {
+  background-color: #ffffff;
+  color: var(--bs-body-color);
+  border: 1px solid #e2e8f0;
+}
+
 .timeline-container {
   position: relative;
   padding-left: 50px;
@@ -12274,6 +12311,31 @@ body {
   color: white !important;
 }
 
+[data-bs-theme=light] .timeline-card {
+  background: #edf2f7;
+  color: var(--bs-body-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+[data-bs-theme=light] .timeline-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  background: #e2e8f0;
+}
+[data-bs-theme=light] .timeline-card.start {
+  background: #e6ffed;
+}
+[data-bs-theme=light] .timeline-card.end {
+  background: #ffe6e6;
+}
+[data-bs-theme=light] .timeline-card p {
+  color: var(--bs-body-color) !important;
+}
+[data-bs-theme=light] .timeline-card .text-dark {
+  color: var(--bs-body-color) !important;
+}
+[data-bs-theme=light] .timeline-card strong {
+  color: var(--bs-body-color) !important;
+}
+
 .pending-request-card {
   cursor: pointer !important;
   transition: all 0.2s ease;
@@ -12302,4 +12364,21 @@ body {
 }
 .pending-request-card .form-check-input:hover {
   border-color: var(--bs-warning);
+}
+
+[data-bs-theme=light] .pending-request-card {
+  background: white !important;
+  color: var(--bs-body-color) !important;
+  border: 1px solid #e2e8f0 !important;
+}
+[data-bs-theme=light] .pending-request-card * {
+  color: var(--bs-body-color) !important;
+}
+[data-bs-theme=light] .pending-request-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+  background: #f7fafc !important;
+}
+[data-bs-theme=light] .pending-request-card .form-check-input {
+  background-color: white;
+  border-color: #cbd5e0;
 }/*# sourceMappingURL=site.css.map */

@@ -21,6 +21,7 @@ body {
   font-size: $font-size-base;
   font-weight: $font-weight-normal;
   background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
   margin: 0;
   padding: 0;
 }
@@ -69,6 +70,11 @@ body {
 .pmu-password-info-btn {
   cursor: pointer;
   color: var(--bs-info);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--bs-info);
+  }
 }
 
 .pmu-requirement.valid {
@@ -177,6 +183,50 @@ $pmu-timeline-pending-bg: #0d1117;
 $pmu-timeline-checkbox-bg: #1a202c;
 $pmu-timeline-checkbox-border: #cbd5e0;
 
+// Light mode variables
+$pmu-timeline-bg-light: #f7fafc;
+$pmu-timeline-card-bg-light: #edf2f7;
+$pmu-timeline-card-bg-hover-light: #e2e8f0;
+$pmu-timeline-card-start-bg-light: #e6ffed;
+$pmu-timeline-card-end-bg-light: #ffe6e6;
+$pmu-timeline-pending-bg-light: #ffffff;
+$pmu-timeline-checkbox-bg-light: #ffffff;
+
+// Modal body background
+.pmu-timeline-modal-body {
+  background-color: $pmu-timeline-bg-dark;
+  color: white;
+}
+
+[data-bs-theme="light"] .pmu-timeline-modal-body {
+  background-color: $pmu-timeline-bg-light;
+  color: var(--bs-body-color);
+}
+
+// Timeline text color
+.timeline-text {
+  color: white !important;
+}
+
+[data-bs-theme="light"] .timeline-text {
+  color: var(--bs-body-color) !important;
+}
+
+// Pending requests container
+.pmu-pending-requests-container {
+  background-color: $pmu-timeline-pending-bg;
+  color: white;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-bs-theme="light"] .pmu-pending-requests-container {
+  background-color: $pmu-timeline-pending-bg-light;
+  color: var(--bs-body-color);
+  border: 1px solid #e2e8f0;
+}
+
 .timeline-container {
   position: relative;
   padding-left: 50px;
@@ -264,6 +314,37 @@ $pmu-timeline-checkbox-border: #cbd5e0;
   }
 }
 
+[data-bs-theme="light"] .timeline-card {
+  background: $pmu-timeline-card-bg-light;
+  color: var(--bs-body-color);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: $pmu-timeline-card-bg-hover-light;
+  }
+
+  &.start {
+    background: $pmu-timeline-card-start-bg-light;
+  }
+
+  &.end {
+    background: $pmu-timeline-card-end-bg-light;
+  }
+
+  p {
+    color: var(--bs-body-color) !important;
+  }
+
+  .text-dark {
+    color: var(--bs-body-color) !important;
+  }
+
+  strong {
+    color: var(--bs-body-color) !important;
+  }
+}
+
 .pending-request-card {
   cursor: pointer !important;
   transition: all 0.2s ease;
@@ -296,5 +377,25 @@ $pmu-timeline-checkbox-border: #cbd5e0;
     &:hover {
       border-color: var(--bs-warning);
     }
+  }
+}
+
+[data-bs-theme="light"] .pending-request-card {
+  background: white !important;
+  color: var(--bs-body-color) !important;
+  border: 1px solid #e2e8f0 !important;
+
+  * {
+    color: var(--bs-body-color) !important;
+  }
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+    background: #f7fafc !important;
+  }
+
+  .form-check-input {
+    background-color: white;
+    border-color: #cbd5e0;
   }
 }
