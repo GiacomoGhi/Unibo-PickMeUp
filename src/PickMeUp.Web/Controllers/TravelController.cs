@@ -335,6 +335,28 @@ public partial class TravelController : Controller
 
         return RedirectToAction(nameof(Travel), new { travelId });
     }
+
+    [HttpPost]
+    public virtual async Task<IActionResult> DeleteTravel([FromForm] int travelId)
+    {
+        var deleteTravelResult = await _userTravelService
+            .DeleteUserTravelAsync(
+                new()
+                {
+                    UserId = this.GetUserId(),
+                    EntityId = travelId,
+                });
+        
+        // Check error
+        if (deleteTravelResult.HasNonSuccessStatusCode)
+        {
+            AlertHelper.AddError(this, deleteTravelResult.ErrorMessage);
+            return RedirectToAction(nameof(Travel), new { travelId });
+        }
+        
+        AlertHelper.AddSuccess(this, "Viaggio annullato con successo!");
+        return RedirectToAction(nameof(List), new { IsFromFindTravel = false });
+    }
   
     /// <summary>
     /// Get user identifier from claims.

@@ -128,11 +128,49 @@
                     }
                     else
                     {
-                        <button type="button" class="btn btn-danger mt-3 col-auto">
+                        <button type="button" class="btn btn-danger mt-3 col-auto" data-bs-toggle="modal" data-bs-target="#deleteTravelModal">
                             Annulla Viaggio
                         </button>
                     }
                 </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Travel Confirmation Modal -->
+<div class="modal fade" id="deleteTravelModal" tabindex="-1" aria-labelledby="deleteTravelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0">
+                <h5 class="modal-title text-danger fw-bold" id="deleteTravelModalLabel">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>STAI ELIMINANDO IL TUO VIAGGIO
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">
+                    Gli imprevisti possono capitare, ma attenzione: <strong>questa azione non è reversibile.</strong>
+                </p>
+                <p class="mb-3">
+                    Se sei tu il Driver di questo Viaggio e la data di partenza è molto ravvicinata, 
+                    ti invitiamo a contattare direttamente e tempestivamente le persone coinvolte.
+                </p>
+                <p class="mb-0">
+                    Se confermi questa scelta, le altre persone coinvolte riceveranno una mail di notifica 
+                    con cui comunicheremo la tua rinuncia a questo viaggio.
+                </p>
+            </div>
+            <div class="modal-footer border-0 justify-content-end">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    Indietro
+                </button>
+                <form asp-controller="Travel" asp-action="DeleteTravel" method="post" class="d-inline">
+                    <input type="hidden" name="travelId" value="@Model.UserTravelId" />
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">
+                        <i class="bi bi-trash me-1"></i>Annulla il Viaggio
+                    </button>
+                </form>
             </div>
         </div>
     </div>

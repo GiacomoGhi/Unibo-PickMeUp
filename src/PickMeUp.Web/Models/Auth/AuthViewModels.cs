@@ -13,6 +13,8 @@ namespace PickMeUp.Web.Models.Auth
         public string Email { get; set; } = default!;
         public string Password { get; set; } = default!;
         public bool RememberMe { get; set; }
+        public bool ShowPasswordResetModal { get; set; }
+        public ResetPasswordViewModel? ResetPasswordData { get; set; }
     }
 
     public class SignUpViewModel

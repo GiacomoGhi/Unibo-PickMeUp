@@ -24,12 +24,24 @@ public partial class AuthController : Controller
         _authService = authService;
     }
 
+    [HttpGet]
+    public virtual IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] bool useCredentials = false)
+    {
+        var model = new LoginViewModel { ReturnUrl = returnUrl };
+        if (useCredentials)
+        {
+            return View("LoginCredentials", model);
+        }
+        return View("Login", model);
+    }
+
     [HttpPost]
-    public async virtual Task<ControllerResult> Login([FromBody] LoginViewModel model)
+    public async virtual Task<IActionResult> Login([FromForm] LoginViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return ControllerResult.Error("Dati non validi");
+            AlertHelper.AddError(this, "Dati non validi");
+            return View("LoginCredentials", model);
         }
 
         var loginResult = await _authService.LoginAsync(new LoginParams
@@ -40,7 +52,8 @@ public partial class AuthController : Controller
 
         if (loginResult.HasNonSuccessStatusCode)
         {
-            return ControllerResult.Error(loginResult.ErrorMessage);
+            AlertHelper.AddError(this, loginResult.ErrorMessage);
+            return View("LoginCredentials", model);
         }
         
         var claims = new List<Claim>
@@ -60,15 +73,25 @@ public partial class AuthController : Controller
                 IsPersistent = model.RememberMe,
             });
 
-        return ControllerResult.Success();
+        return string.IsNullOrWhiteSpace(model.ReturnUrl) 
+            ? RedirectToAction("Landing", "Home")
+            : Redirect(model.ReturnUrl);
+    }
+
+    [HttpGet]
+    public virtual IActionResult SignUp([FromQuery] SignUpViewModel? signUpModel = null)
+    {
+        return View(signUpModel ?? new SignUpViewModel());
     }
 
     [HttpPost]
-    public async virtual Task<ControllerResult> SignUp([FromBody] SignUpViewModel model)
+    [ActionName("SignUp")]
+    public async virtual Task<IActionResult> SignUpPost([FromForm] SignUpViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return ControllerResult.Error("Dati non validi");
+            AlertHelper.AddError(this, "Dati non validi");
+            return View("SignUp", model);
         }
 
         var signUpResult = await _authService.SignUpAsync(new SignUpParams
@@ -81,10 +104,14 @@ public partial class AuthController : Controller
 
         if (signUpResult.HasNonSuccessStatusCode)
         {
-            return ControllerResult.Error(signUpResult.ErrorMessage);
+            AlertHelper.AddError(this, signUpResult.ErrorMessage);
+            return View("SignUp", model);
         }
 
-        return ControllerResult.Success();
+        AlertHelper.AddSuccess(this, "Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.");
+        return string.IsNullOrWhiteSpace(model.ReturnUrl) 
+            ? RedirectToAction("Landing", "Home") 
+            : Redirect(model.ReturnUrl);
     }
 
     [HttpPost]
@@ -176,21 +203,26 @@ public partial class AuthController : Controller
     }
 
     [HttpPost]
-    public async virtual Task<ControllerResult> RequestPasswordReset([FromBody] RequestPasswordResetViewModel model)
+    public async virtual Task<IActionResult> RequestPasswordReset([FromForm] string email, [FromForm] string? returnUrl = null)
     {
-        if (!ModelState.IsValid)
+        if (string.IsNullOrWhiteSpace(email))
         {
-            return ControllerResult.Error("Dati non validi");
+            AlertHelper.AddError(this, "Email non valida");
+            return RedirectToAction(nameof(Login), new { useCredentials = true, returnUrl });
         }
 
-        var result = await _authService.RequestPasswordResetAsync(model.Email);
+        var result = await _authService.RequestPasswordResetAsync(email);
 
-        if (!result.HasNonSuccessStatusCode)
+        if (result.HasNonSuccessStatusCode)
         {
-            return ControllerResult.Success();
+            AlertHelper.AddError(this, result.ErrorMessage);
+            return RedirectToAction(nameof(Login), new { useCredentials = true, returnUrl });
         }
 
-        return ControllerResult.Error(result.ErrorMessage);
+        AlertHelper.AddSuccess(this, "Ti abbiamo inviato un'email con le istruzioni per reimpostare la password. Controlla la tua casella di posta!");
+        return string.IsNullOrWhiteSpace(returnUrl) 
+            ? RedirectToAction("Landing", "Home")
+            : Redirect(returnUrl);
     }
 
     [HttpGet]
@@ -202,13 +234,17 @@ public partial class AuthController : Controller
             return RedirectToAction("Landing", "Home");
         }
 
-        var model = new ResetPasswordViewModel
+        var loginModel = new LoginViewModel
         {
-            UserId = userId,
-            Token = token
+            ShowPasswordResetModal = true,
+            ResetPasswordData = new ResetPasswordViewModel
+            {
+                UserId = userId,
+                Token = token
+            }
         };
 
-        return View(model);
+        return View("LoginCredentials", loginModel);
     }
 
     [HttpPost]
@@ -216,18 +252,29 @@ public partial class AuthController : Controller
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            AlertHelper.AddError(this, "Dati non validi. Verifica i requisiti della password.");
+            var loginModel = new LoginViewModel
+            {
+                ShowPasswordResetModal = true,
+                ResetPasswordData = model
+            };
+            return View("LoginCredentials", loginModel);
         }
 
         var result = await _authService.ResetPasswordAsync(model.UserId, model.Token, model.NewPassword);
 
         if (result.HasNonSuccessStatusCode)
         {
-            ModelState.AddModelError(string.Empty, result.ErrorMessage);
-            return View(model);
+            AlertHelper.AddError(this, result.ErrorMessage);
+            var loginModel = new LoginViewModel
+            {
+                ShowPasswordResetModal = true,
+                ResetPasswordData = model
+            };
+            return View("LoginCredentials", loginModel);
         }
 
         AlertHelper.AddSuccess(this, "Password reimpostata con successo! Ora puoi effettuare il login.");
-        return RedirectToAction("Landing", "Home");
+        return RedirectToAction(nameof(Login), new { useCredentials = true });
     }
 }
