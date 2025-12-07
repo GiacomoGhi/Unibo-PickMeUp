@@ -167,7 +167,7 @@ function initTravelApp() {
         });
 
         locationAutocomplete.id = "location-autocomplete";
-        locationAutocomplete.className = "form-control bg-pmu-dark";
+        locationAutocomplete.className = "form-control bg-pmu text-white";
         locationAutocomplete.placeholder =
           state.pickUpRequestId > 0
             ? "Inserisci nuovo indirizzo per modificare"

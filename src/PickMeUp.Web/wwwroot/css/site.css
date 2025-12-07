@@ -11981,6 +11981,10 @@ body {
   padding: 0;
 }
 
+[data-bs-theme=light] body {
+  background-color: #f5f1ed;
+}
+
 #pmu-form-group,
 .pmu-form-group {
   position: relative;
@@ -12111,11 +12115,11 @@ body {
   background-color: #17a2b8 !important;
 }
 
-.bg-pmu-dark {
+.bg-pmu {
   background-color: #000000 !important;
 }
 
-.bg-pmu-light {
+[data-bs-theme=light] .bg-pmu {
   background-color: #ffffff !important;
 }
 
@@ -12295,4 +12299,12 @@ body {
 [data-bs-theme=light] .pending-request-card .form-check-input {
   background-color: white;
   border-color: #cbd5e0;
+  cursor: pointer;
+}
+[data-bs-theme=light] .pending-request-card .form-check-input:checked {
+  background-color: var(--bs-warning);
+  border-color: var(--bs-warning);
+}
+[data-bs-theme=light] .pending-request-card .form-check-input:hover {
+  border-color: var(--bs-warning);
 }/*# sourceMappingURL=site.css.map */
