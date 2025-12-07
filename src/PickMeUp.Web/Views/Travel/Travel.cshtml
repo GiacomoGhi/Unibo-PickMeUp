@@ -25,18 +25,18 @@
 <div id="travelApp" class="container py-5" v-cloak>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10 mb-4">
-            <div class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu-dark text-light" aria-current="true">
+            <div class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu " aria-current="true">
                 <div class="d-flex w-100 justify-content-between mb-2">
                     <h5 class="mb-1 text-primary">
                         <i class="bi bi-geo-alt"></i> @Model.DepartureLocation.ReadableAddress 
-                        <i class="bi bi-arrow-right mx-2 text-light opacity-75"></i> 
+                        <i class="bi bi-arrow-right mx-2  opacity-75"></i> 
                         <i class="bi bi-geo-alt-fill"></i> @Model.DestinationLocation.ReadableAddress
                     </h5>
-                    <small class="text-light opacity-75">@($"{Model.DepartureDate.ToString("dd MMM yyyy")} {Model.DepartureTime.ToShortTimeString()}")</small>
+                    <small class=" opacity-75">@($"{Model.DepartureDate.ToString("dd MMM yyyy")} {Model.DepartureTime.ToShortTimeString()}")</small>
                 </div>
                 <div class="d-flex justify-content-between align-items-end">
                     <div>
-                        <p class="mb-1 text-light"><i class="bi bi-person-circle"></i> Autista: @(isOwner ? "Tu" : Model.UserNominative)</p>
+                        <p class="mb-1 "><i class="bi bi-person-circle"></i> Autista: @(isOwner ? "Tu" : Model.UserNominative)</p>
                         <span class="badge bg-success rounded-pill">
                             @(Model.TotalPassengersSeatsCount - Model.OccupiedPassengerSeatsCount) posti liberi
                         </span>
