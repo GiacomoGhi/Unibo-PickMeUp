@@ -12123,6 +12123,24 @@ body {
   background-color: #ffffff !important;
 }
 
+#departure-autocomplete,
+#destination-autocomplete {
+  color: #000000 !important;
+}
+#departure-autocomplete::-moz-placeholder, #destination-autocomplete::-moz-placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+#departure-autocomplete::placeholder,
+#destination-autocomplete::placeholder {
+  color: rgba(0, 0, 0, 0.5) !important;
+}
+#departure-autocomplete:focus,
+#destination-autocomplete:focus {
+  color: #000000 !important;
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
 .pmu-timeline-modal-body {
   background-color: #1a202c;
   color: white;

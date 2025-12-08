@@ -57,7 +57,7 @@
                         <input type="date"
                             id="departureDate"
                             v-model="state.departureDate"
-                            class="form-control bg-light" 
+                            class="form-control bg-pmu" 
                             placeholder="GG/MM/YYYY"/>
                     </div>
 
@@ -67,7 +67,7 @@
                         <input type="time"
                             id="departureTime"
                             v-model="state.departureTime"
-                            class="form-control bg-light" />
+                            class="form-control bg-pmu" />
                     </div>
 
                     <!-- Posti -->
@@ -76,7 +76,7 @@
                         <input type="number"
                             id="seatsCount"
                             v-model="state.seatsCount"
-                            class="form-control bg-light"
+                            class="form-control bg-pmu"
                             min="1"
                             placeholder="es. 3" />
                         <div class="invalid-feedback d-block" v-if="state.submitted && !isSeatsValid">
