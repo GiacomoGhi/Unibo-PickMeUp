@@ -1,0 +1,94 @@
+//////////////////////////////////////////////////////
+// SCHEMA DBML - Ottimizzato per PostgreSQL
+// NB: incollare in https://dbdiagram.io/d
+//////////////////////////////////////////////////////
+
+Enum stato_richiesta {
+  inserita          [note: "Richiesta appena creata"]
+  accettata         [note: "Approvata dal driver/host"]
+  rifiutata         [note: "Rifiutata dal driver/host"]
+  annullata         [note: "Richiesta annullata da guest o da host (eliminazione Viaggio o Utente-Host"]
+}
+
+//Enum dest {
+//  Altro             [note: "Per privacy, possibile eliminare dopo 6 mesi da touch_date e se STARRED = 0"]
+//  Sede_Aziendale
+//  Cliente
+//  Fornitore
+//  Partner
+//}
+
+Table utenti {
+  id integer [pk, increment]
+  email varchar(255) [unique, not null, note: "Indirizzo email univoco"]
+  nome varchar(255) [not null]
+  cognome varchar(255) [not null]
+  //alias varchar(255)
+  //avatar varchar(255) [note: "Link immagine / URI / UUID"]
+  //is_admin boolean [not null, default: false]
+  //touch_date timestamp [not null, default: `now()`]
+  deletion_date timestamp [default: null, note: "Soft delete account utente"]
+}
+
+
+//Table poi {
+//  id integer [pk, increment]
+//  tipo dest [not null, default: "Altro"]
+//  coordinate varchar(255) [not null, note: "lat,lng o GeoJSON string"]
+//  indirizzo varchar(255) [not null]
+//  descrizione varchar(255) [not null]
+//  touch_date timestamp [not null, default: `now()`]
+//  deletion_date timestamp [default: null, note: "Soft delete POI (privacy / pulizia)"]
+//  starred integer [not null, default: 0, note: "Contatore preferenze"]
+//
+//  indexes {
+//    tipo
+//    descrizione
+//  }
+//}
+
+
+Table viaggi {
+  id integer [pk, increment]
+  host integer [ref: > utenti.id, not null, note: "FK host (utente)"]
+  posti_disponibili integer [not null, default: 0, note: "Impostato dall'host; decrementato su approvazione"]
+  coordinate_partenza varchar(255) [not null, note: "lat,lng o GeoJSON string"]
+  indirizzo_partenza varchar(255) [not null]
+   //arrivo integer [ref: > poi.id, note: "FK POI arrivo"]
+  data_ora_partenza timestamp [not null, default: `now()`]
+  coordinate_arrivo varchar(255) [not null, note: "lat,lng o GeoJSON string"]
+  indirizzo_arrivo varchar(255) [not null]  
+  data_ora_arrivo timestamp [default: null]
+  //touch_date timestamp [not null, default: `now()`]
+  deletion_date timestamp [default: null, note: "Soft delete viaggio (annullamento)"]
+
+  // comportamento: soft delete per viaggi; se host "viene eliminato" -> set deletion_date
+  // NOTA: eventuali richieste legate vengono messe in stato = 'annullata' via trigger
+}
+
+
+Table richieste {
+  id integer [pk, increment]
+  data_ora_inserimento timestamp [not null, default: `now()`]
+  id_viaggio integer [ref: > viaggi.id, not null]
+  guest integer [ref: > utenti.id]
+  coordinate_pkpoint varchar(255) [not null, note: "lat,lng o GeoJSON string"]
+  indirizzo_pkpoint varchar(255) [not null]  
+  //arrivo integer [ref: > poi.id, note: "FK POI arrivo"]
+  data_ora_pkpoint timestamp [default: null]
+  deletion_date timestamp [default: null, note: "Soft delete"] //valutare se necessario
+  stato stato_richiesta [not null, default: "inserita"]
+  distanza numeric(6,2) [note: "km da pick-up a destinazione"]
+  rimborso numeric(10,2) [note: "calcolo es.: 0.15€ * distanza"]
+}
+
+//Table my_poi {
+//  id integer [pk, increment]
+//  utente integer [ref: > utenti.id, not null]
+//  poi_id integer [ref: > poi.id, not null]
+//
+//  // se un utente o un POI vengono rimossi, le righe correlate vengono eliminate.
+//  indexes {
+//    (utente, poi_id) [unique, note: "Evita duplicazioni"]
+//  }
+//}
