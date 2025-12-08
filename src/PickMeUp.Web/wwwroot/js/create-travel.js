@@ -48,7 +48,7 @@ function initVueApp() {
         departureAutocomplete.id = "departure-autocomplete";
         departureAutocomplete.placeholder = "Inserisci indirizzo di partenza";
         // Ensure autocomplete element gets Bootstrap form styling
-        departureAutocomplete.className = "form-control bg-light";
+        departureAutocomplete.className = "form-control bg-pmu";
         document
           .getElementById("departure-container")
           .appendChild(departureAutocomplete);
@@ -66,7 +66,7 @@ function initVueApp() {
         destinationAutocomplete.placeholder =
           "Inserisci indirizzo di destinazione";
         // Ensure autocomplete element gets Bootstrap form styling
-        destinationAutocomplete.className = "form-control bg-light";
+        destinationAutocomplete.className = "form-control bg-pmu";
         document
           .getElementById("destination-container")
           .appendChild(destinationAutocomplete);
