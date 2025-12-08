@@ -170,6 +170,6 @@ Mettiamo in evidenza le differenze tra il mockup e la resa della soluzione nella
 
 ### 2025-12 – Final
 
-In questa fase completiamo e pubblichiamo al Cliente la presentazione del progetto [CANVA](./CANVA-Analisi_e_Progettazione.url).
+In questa fase completiamo e pubblichiamo al Cliente la presentazione del progetto [CANVA](https://www.canva.com/design/DAG1lKlyGjw/SXHpjLWYVulxo5cQtBjKQw/view)
 
 Il Progetto scorre le fasi di analisi, dalla definizione del contesto, fino alla descrizione degli scenari rappresentati nella **customerjouney**
