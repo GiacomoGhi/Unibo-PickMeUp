@@ -27,6 +27,12 @@ public partial class AuthController : Controller
     [HttpGet]
     public virtual IActionResult Login([FromQuery] string? returnUrl = null, [FromQuery] bool useCredentials = false)
     {
+        // Se non stiamo arrivando da un POST con errori, pulisci il ModelState
+        if (!TempData.ContainsKey("HasValidationErrors"))
+        {
+            ModelState.Clear();
+        }
+        
         var model = new LoginViewModel { ReturnUrl = returnUrl };
         if (useCredentials)
         {
@@ -36,12 +42,14 @@ public partial class AuthController : Controller
     }
 
     [HttpPost]
-    public async virtual Task<IActionResult> Login([FromForm] LoginViewModel model)
+    [ActionName("Login")]
+    public async virtual Task<IActionResult> LoginPost([FromForm] LoginViewModel model)
     {
         if (!ModelState.IsValid)
         {
             AlertHelper.AddError(this, "Dati non validi");
-            return View("LoginCredentials", model);
+            TempData["HasValidationErrors"] = true;
+            return RedirectToAction(nameof(Login), new { useCredentials = true, returnUrl = model.ReturnUrl });
         }
 
         var loginResult = await _authService.LoginAsync(new LoginParams
@@ -53,7 +61,8 @@ public partial class AuthController : Controller
         if (loginResult.HasNonSuccessStatusCode)
         {
             AlertHelper.AddError(this, loginResult.ErrorMessage);
-            return View("LoginCredentials", model);
+            TempData["HasValidationErrors"] = true;
+            return RedirectToAction(nameof(Login), new { useCredentials = true, returnUrl = model.ReturnUrl });
         }
         
         var claims = new List<Claim>
@@ -79,8 +88,13 @@ public partial class AuthController : Controller
     }
 
     [HttpGet]
-    public virtual IActionResult SignUp([FromQuery] SignUpViewModel? signUpModel = null)
+    public virtual IActionResult SignUp([FromQuery] SignUpViewModel? signUpModel = null, [FromQuery] bool keepErrors = false)
     {
+        // Se non stiamo arrivando da un POST con errori, pulisci il ModelState
+        if (!keepErrors)
+        {
+            ModelState.Clear();
+        }
         return View(signUpModel ?? new SignUpViewModel());
     }
 
@@ -91,7 +105,7 @@ public partial class AuthController : Controller
         if (!ModelState.IsValid)
         {
             AlertHelper.AddError(this, "Dati non validi");
-            return View("SignUp", model);
+            return RedirectToAction(nameof(SignUp), new { signUpModel = model, keepErrors = true });
         }
 
         var signUpResult = await _authService.SignUpAsync(new SignUpParams
@@ -105,9 +119,10 @@ public partial class AuthController : Controller
         if (signUpResult.HasNonSuccessStatusCode)
         {
             AlertHelper.AddError(this, signUpResult.ErrorMessage);
-            return View("SignUp", model);
+            return RedirectToAction(nameof(SignUp), new { signUpModel = model, keepErrors = true });
         }
 
+        // Remove temp data related to model state
         AlertHelper.AddSuccess(this, "Registrazione avvenuta con successo! Controlla la tua email per confermare il tuo account.");
         return string.IsNullOrWhiteSpace(model.ReturnUrl) 
             ? RedirectToAction("Landing", "Home") 
@@ -164,6 +179,7 @@ public partial class AuthController : Controller
         
         var claims = new List<Claim>
         {
+            new(ClaimTypes.Name, result.Data!.UserFirstName),
             new(ClaimTypes.NameIdentifier, result.Data!.UserId.ToString()),
             new(ClaimTypes.Email, result.Data.UserEmail)
         };

@@ -101,14 +101,7 @@ internal class AuthService(
 
         if (existingUser is not null)
         {
-            // Don't reveal if user exists or not for security reasons
-            // Return success anyway to prevent email enumeration
-            
-            // TODO Optionally: send a security notification to the existing user
-            // Ignoring the result as it's not critical
-            // _ = await _emailService.SendAccountExistsNotificationAsync(existingUser.Email, existingUser.FirstName);
-            
-            return Result.Success();
+            return Result.InvalidArgument("User email already in use");
         }
 
         // Create new user
@@ -254,6 +247,7 @@ internal class AuthService(
             return Result.Success(new LoginResult
             {
                 UserId = existingUser.UserId,
+                UserFirstName = existingUser.FirstName,
                 UserEmail = existingUser.Email
             });
         }

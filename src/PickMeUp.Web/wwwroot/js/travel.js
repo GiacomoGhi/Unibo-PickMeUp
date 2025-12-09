@@ -326,18 +326,20 @@ function initTravelApp() {
 
       // -- METHODS: DELETE --
       const handleDeletePickUpRequest = async () => {
-        if (
-          !confirm("Sei sicuro di voler eliminare la tua richiesta di pick-up?")
-        ) {
-          return;
-        }
-
         const travelId = window.routeData.travelId;
         const formData = new FormData();
         formData.append("travelId", travelId);
         formData.append("pickUpRequestId", state.pickUpRequestId);
 
         try {
+          // Close modal before redirecting
+          const modal = bootstrap.Modal.getInstance(
+            document.getElementById("deletePickUpRequestModal")
+          );
+          if (modal) {
+            modal.hide();
+          }
+
           const response = await fetch("/Travel/DeletePickUpRequest", {
             method: "POST",
             body: formData,
@@ -356,11 +358,7 @@ function initTravelApp() {
       };
 
       // -- COMPUTED PROPERTIES --
-      const isEditing = computed(() => state.pickUpRequestId > 0);
-      const canEdit = computed(
-        () =>
-          state.pickUpRequestStatus === null || state.pickUpRequestStatus === 0
-      );
+      const isCreate = computed(() => state.pickUpRequestId == 0);
       const canDelete = computed(() => state.pickUpRequestId > 0);
       const isPending = computed(() => state.pickUpRequestStatus === 0);
       const isAccepted = computed(() => state.pickUpRequestStatus === 1);
@@ -375,8 +373,7 @@ function initTravelApp() {
         state,
         handleRequestPickUp,
         handleDeletePickUpRequest,
-        isEditing,
-        canEdit,
+        isCreate,
         canDelete,
         isPending,
         isAccepted,
