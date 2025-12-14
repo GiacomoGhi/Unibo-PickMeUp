@@ -333,18 +333,21 @@ internal class UserPickUpRequestService(
     public async Task<Result> EditUserPickUpRequestStatusBulkAsync(EditUserPickUpRequestStatusBulkParams requestParams)
     {
         // Validate parameters
-        if (requestParams.UserPickUpRequestIds == null || requestParams.UserPickUpRequestIds.Count == 0)
+        if (requestParams.StatusChanges == null || requestParams.StatusChanges.Count == 0)
         {
-            return Result.InvalidArgument(nameof(requestParams.UserPickUpRequestIds));
+            return Result.InvalidArgument(nameof(requestParams.StatusChanges));
         }
         if (requestParams.UserId <= 0)
         {
             return Result.InvalidArgument(nameof(requestParams.UserId));
         }
 
+        // Get all request IDs
+        var requestIds = requestParams.StatusChanges.Select(sc => sc.UserPickUpRequestId).ToList();
+
         // Load all pickup requests
         var pickupRequests = await _dbContext.UserPickUpRequests
-            .Where(pr => requestParams.UserPickUpRequestIds.Contains(pr.UserPickUpRequestId)
+            .Where(pr => requestIds.Contains(pr.UserPickUpRequestId)
                       && !pr.DeletionDateTime.HasValue)
             .ToListAsync();
 
@@ -390,21 +393,31 @@ internal class UserPickUpRequestService(
             return Result.Error("Cannot modify requests for a travel that has already departed");
         }
 
+        // Create a dictionary for quick lookup of new statuses
+        var statusChangesDict = requestParams.StatusChanges.ToDictionary(
+            sc => sc.UserPickUpRequestId, 
+            sc => sc.Status);
+
         // Calculate seat changes
         var seatsToAdd = 0;
         var seatsToRemove = 0;
 
         foreach (var pickupRequest in pickupRequests)
         {
-            // If accepting request
-            if (requestParams.Status == UserPickUpRequestStatus.Accepted
+            if (!statusChangesDict.TryGetValue(pickupRequest.UserPickUpRequestId, out var newStatus))
+            {
+                continue;
+            }
+
+            // If accepting request that wasn't accepted before
+            if (newStatus == UserPickUpRequestStatus.Accepted
                 && pickupRequest.Status != UserPickUpRequestStatus.Accepted)
             {
                 seatsToAdd++;
             }
 
             // If rejecting a previously accepted request
-            if (requestParams.Status == UserPickUpRequestStatus.Rejected
+            if (newStatus == UserPickUpRequestStatus.Rejected
                 && pickupRequest.Status == UserPickUpRequestStatus.Accepted)
             {
                 seatsToRemove++;
@@ -427,7 +440,10 @@ internal class UserPickUpRequestService(
         // Update all request statuses
         foreach (var pickupRequest in pickupRequests)
         {
-            pickupRequest.Status = requestParams.Status;
+            if (statusChangesDict.TryGetValue(pickupRequest.UserPickUpRequestId, out var newStatus))
+            {
+                pickupRequest.Status = newStatus;
+            }
         }
 
         // Save changes
@@ -451,7 +467,7 @@ internal class UserPickUpRequestService(
         //                 requester.Email,
         //                 requester.FirstName,
         //                 travelOwner.FirstName,
-        //                 requestParams.Status,
+        //                 statusChangesDict[pickupRequest.UserPickUpRequestId],
         //                 travel.DepartureLocation.ReadableAddress,
         //                 travel.DestinationLocation.ReadableAddress,
         //                 travel.DepartureDateTime);

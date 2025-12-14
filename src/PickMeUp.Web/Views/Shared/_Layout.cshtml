@@ -19,32 +19,25 @@
             filter: invert(1);
         }
     }
-    
-    @@media (prefers-color-scheme: dark) {
-        .avatar-travel {
-            filter: invert(1) !important;
-
-        }
-    }
 </style> 
 
 <!-- Main Layout -->
 <nav>
-    <div class="row align-items-center justify-content-center w-100 gx-3">
+    <div class="row align-items-end justify-content-center w-100 gx-3">
         <div class="col-12 col-md-6 order-1 order-md-2 text-center px-0 mb-2 mb-md-0">
-            <img src="~/images/hero.png" alt="hero highway image" class="img-fluid w-70"/>
+            @RenderSection("hero", required: false)
         </div>
 
         <div class="col-6 col-md-2 order-2 order-md-1 d-flex justify-content-center">
             <div class="d-flex flex-column gap-2">
                 <a href="@Url.Action(MVC.Home.Landing())" class="d-inline-block">
-                    <img src="~/images/logo.svg" alt="Pick-me-UP" class="img-fluid @(isTravelOrListView ? "avatar-travel" : "")" style="@(isTravelOrListView ? "" : "filter: invert(1);") height:80px; max-height:80px;" />
+                    <img src="~/images/logo.svg" alt="Pick-me-UP" class="img-fluid" style="@(isTravelOrListView ? "" : "filter: invert(1);") height:80px; max-height:80px;" />
                 </a>
                 
                 @if (isAuthenticated)
                 { 
-                    <a href="@Url.Action("List", "Travel", new { IsFromFindTravel  = false })" class="btn btn-primary rounded-2 text-white border-0">
-                        <span>🚗 I Tuoi Viaggi</span>
+                    <a href="@Url.Action("List", "Travel", new { IsFromFindTravel  = false })" class="btn btn-info rounded-2 text-white border-0">
+                        <span>I Tuoi Viaggi</span>
                     </a>
                 }
             </div>
@@ -56,7 +49,7 @@
                 { 
                     <div class="dropdown">
                         <button class="btn p-0 dropdown-toggle d-flex flex-column align-items-center bg-transparent" type="button" id="dropdownUserActions" data-bs-toggle="dropdown" aria-expanded="false">
-                            <img src="~/images/avatar.svg" alt="Avatar" class="@(isTravelOrListView ? "avatar-travel" : "responsive-invert")" style="height: 80px;"/>
+                            <img src="~/images/avatar.svg" alt="Avatar" class="@(isTravelOrListView ? "" : "responsive-invert")" style="height: 80px;"/>
                             <p class="fs-3 fw-bold m-0 @(isTravelOrListView ? "" : "responsive-invert text-dark")">@userFirstName</p>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownUserActions">

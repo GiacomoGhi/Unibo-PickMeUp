@@ -22,10 +22,16 @@
         .ToDictionary(g => g.Key, g => g.ToList());
 }
 
+@section hero {
+    <div class="row">
+        <h1 class="display-4 fw-bold">Dettagli Viaggio</h1>
+    </div>
+}
+
 <div id="travelApp" class="container py-5" v-cloak>
     <div class="row justify-content-center">
         <div class="col-12 col-lg-10 mb-4">
-            <div class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu " aria-current="true">
+            <div class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-light " aria-current="true">
                 <div class="d-flex w-100 justify-content-between mb-2">
                     <h5 class="mb-1 text-primary">
                         <i class="bi bi-geo-alt"></i> @Model.DepartureLocation.ReadableAddress 
@@ -46,11 +52,11 @@
         </div>
         <div class="col-12 col-lg-10">
             <div class="card shadow-sm">
-                <div class="card-body">
+                <div class="card-body bg-light">
                     @* Pick-up requests trigger *@
                     <div class="row mb-4 px-2">
-                        <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
-                            @(isOwner ? "Visualizza richieste di pick-up" : "Le fermate del viaggio")
+                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#pickUpRequestsModal">
+                            @(isOwner ? "Visualizza richieste di pick-up" : "Itinerario del viaggio")
                             @if (requestsStoreByStatus.TryGetValue(UserPickUpRequestStatus.Pending, out var pendingRequests) && isOwner)
                             {
                                 <span class="badge bg-warning">@pendingRequests.Count</span>
@@ -77,17 +83,17 @@
                         <div class="row mt-4">
                             <div class="col-12">
                                 <!-- Current Location Display (only when editing) -->
-                                <div v-if="canDelete" class="alert alert-info border-0 shadow-sm mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                                <div v-if="canDelete" class="alert bg-white border-0 shadow-sm mb-3">
                                     <div class="d-flex align-items-start gap-3">
-                                        <div class="fs-3">📍</div>
+                                        <i class="bi bi-geo-alt fa-2x"></i>
                                         <div class="flex-grow-1">
                                             <div class="d-flex justify-content-between align-items-center mb-1">
-                                                <h6 class="mb-0 text-white fw-bold">Indirizzo di pick-up attuale</h6>
-                                                <span v-if="isPending" class="badge bg-warning text-dark">In Attesa</span>
+                                                <h6 class="mb-0">Indirizzo di pick-up</h6>
+                                                <span v-if="isPending" class="badge bg-warning">In Attesa</span>
                                                 <span v-if="isAccepted" class="badge bg-success">Accettata</span>
                                             </div>
-                                            <p class="mb-0 text-white opacity-90">
-                                                <i class="bi bi-geo-alt-fill me-2"></i>{{ state.currentAddress }}
+                                            <p class="mb-0 fw-bold">
+                                                {{ state.currentAddress }}
                                             </p>
                                         </div>
                                     </div>
@@ -105,8 +111,8 @@
                                 </div>
                             </div>
                             <div class="col-12 mt-3 d-flex align-items-end justify-content-end gap-2">
-                                <button v-if="!isCreate" type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deletePickUpRequestModal">
-                                    <i class="bi bi-trash"></i> Elimina Richiesta
+                                <button v-if="!isCreate" type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#deletePickUpRequestModal">
+                                    Elimina Richiesta
                                 </button>
                                 <button v-else type="button" @@click="handleRequestPickUp" class="btn btn-primary">
                                     <span>Richiedi Pick-Up</span>
@@ -116,7 +122,7 @@
                     }
                     else
                     {
-                        <button type="button" class="btn btn-danger mt-3 col-auto" data-bs-toggle="modal" data-bs-target="#deleteTravelModal">
+                        <button type="button" class="btn btn-secondary mt-3 col-auto" data-bs-toggle="modal" data-bs-target="#deleteTravelModal">
                             Annulla Viaggio
                         </button>
                     }
@@ -186,7 +192,7 @@
                 </button>
                 <form asp-controller="Travel" asp-action="DeleteTravel" method="post" class="d-inline">
                     <input type="hidden" name="travelId" value="@Model.UserTravelId" />
-                    <button type="submit" class="btn btn-warning text-dark fw-bold">
+                    <button type="submit" class="btn btn-danger text-white">
                         <i class="bi bi-trash me-1"></i>Annulla il Viaggio
                     </button>
                 </form>
@@ -199,9 +205,9 @@
 <div class="modal fade" id="pickUpRequestsModal" tabindex="-1" aria-labelledby="pickUpRequestsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-scrollable modal-lg">
         <div class="modal-content">
-            <div class="modal-header bg-dark text-white">
+            <div class="modal-header">
                 <h5 class="modal-title" id="pickUpRequestsModalLabel">
-                    <i class="bi bi-map me-2"></i>Itinerario Viaggio [@($"{Model.DepartureDate:dd/MM/yyyy}")]
+                    <i class="bi bi-map me-2"></i>Itinerario Viaggio - @($"{Model.DepartureDate:dd/MM/yyyy}")
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -211,7 +217,9 @@
                     
                     @* Departure Section *@
                     <div class="timeline-item">
-                        <div class="timeline-icon start">🚗</div>
+                        <div class="timeline-icon start">
+                            <i class="fa-solid fa-car text-white"></i>
+                        </div>
                         <div class="timeline-card start">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
@@ -238,7 +246,9 @@
                         @foreach (var request in acceptedRequests.Select((r, i) => new { Request = r, Index = i }))
                         {
                             <div class="timeline-item">
-                                <div class="timeline-icon pickup">📍</div>
+                                <div class="timeline-icon pickup">
+                                    <i class="bi bi-geo-alt text-white"></i>
+                                </div>
                                 <div class="timeline-card">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="flex-grow-1">
@@ -263,7 +273,9 @@
 
                     @* Arrival Section *@
                     <div class="timeline-item">
-                        <div class="timeline-icon end">🎯</div>
+                        <div class="timeline-icon end">
+                            <i class="fa-solid fa-bullseye text-white"></i>
+                        </div>
                         <div class="timeline-card end">
                             <div class="d-flex justify-content-between align-items-start">
                                 <div class="flex-grow-1">
@@ -295,35 +307,46 @@
                                 </h6>
                                 @foreach (var request in pendingRequests)
                                 {
-                                    <div class="form-check mb-3 p-3 border-0 rounded-3 shadow-sm pending-request-card">
-                                        <input class="form-check-input" type="checkbox" name="pickUpRequestIds" value="@request.PickUpRequestId" id="request-@request.PickUpRequestId">
-                                        <label class="form-check-label w-100 cursor-pointer" for="request-@request.PickUpRequestId">
-                                            <div class="d-flex justify-content-between align-items-start">
-                                                <div class="flex-grow-1">
-                                                    <div class="d-flex align-items-center mb-2">
-                                                        <span class="badge bg-warning text-dark me-2">
-                                                            <i class="bi bi-clock-history me-1"></i>IN ATTESA
-                                                        </span>
-                                                    </div>
-                                                    <p class="mb-1 small">
-                                                        <i class="bi bi-person-circle me-1"></i>Passeggero: <strong>@request.UserNominative</strong>
-                                                    </p>
-                                                    <p class="mb-0 fw-bold">
-                                                        <i class="bi bi-geo-alt-fill me-1 text-warning"></i>@request.Location.ReadableAddress
-                                                    </p>
+                                    <div class="mb-3 p-3 border-0 rounded-3 shadow-sm pending-request-card">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <span class="badge bg-warning text-dark me-2">
+                                                <i class="bi bi-clock-history me-1"></i>IN ATTESA
+                                            </span>
+                                        </div>
+                                        <p class="mb-1 small">
+                                            <i class="bi bi-person-circle me-1"></i>Passeggero: <strong>@request.UserNominative</strong>
+                                        </p>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <p class="mb-0 fw-bold">
+                                                <i class="bi bi-geo-alt-fill me-1"></i>@request.Location.ReadableAddress
+                                            </p>
+                                            <div class="d-flex gap-3 ms-3">
+                                                <div class="form-check d-flex align-items-center mb-0">
+                                                    <input class="form-check-input border-danger me-1" type="radio" 
+                                                           name="decisions[@request.PickUpRequestId]" 
+                                                           value="@((int)UserPickUpRequestStatus.Rejected)" 
+                                                           id="reject-@request.PickUpRequestId">
+                                                    <label class="form-check-label text-danger fw-bold" for="reject-@request.PickUpRequestId">
+                                                        Rifiuta
+                                                    </label>
+                                                </div>
+                                                <div class="form-check d-flex align-items-center mb-0">
+                                                    <input class="form-check-input border-success me-1" type="radio" 
+                                                           name="decisions[@request.PickUpRequestId]" 
+                                                           value="@((int)UserPickUpRequestStatus.Accepted)" 
+                                                           id="accept-@request.PickUpRequestId">
+                                                    <label class="form-check-label text-success fw-bold" for="accept-@request.PickUpRequestId">
+                                                        Accetta
+                                                    </label>
                                                 </div>
                                             </div>
-                                        </label>
+                                        </div>
                                     </div>
                                 }
 
                                 <div class="d-grid gap-2 mt-4">
-                                    <button type="submit" name="status" value="@((int)UserPickUpRequestStatus.Accepted)" class="btn btn-success btn-lg">
-                                        <i class="bi bi-check-circle me-2"></i>Conferma le Richieste selezionate
-                                    </button>
-                                    <p class="text-center mb-2 small opacity-50">oppure</p>
-                                    <button type="submit" name="status" value="@((int)UserPickUpRequestStatus.Rejected)" class="btn btn-warning text-dark btn-lg">
-                                        <i class="bi bi-x-circle me-2"></i>Rifiuta le Richieste selezionate
+                                    <button type="submit" class="btn btn-info btn-lg">
+                                        <i class="bi bi-check2-all me-2"></i>Conferma selezione
                                     </button>
                                 </div>
                             </div>

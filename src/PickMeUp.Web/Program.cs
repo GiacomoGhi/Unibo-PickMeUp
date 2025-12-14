@@ -10,6 +10,7 @@ using System.Globalization;
 using System.Linq;
 using PickMeUp.Web;
 using PickMeUp.Core.Services.GoogleRoutes;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,14 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseStaticFiles();
+
+// Serve files from node_modules
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(
+        Path.Combine(builder.Environment.ContentRootPath, "node_modules")),
+    RequestPath = "/node_modules"
+});
 
 app.MapControllerRoute("default", "{controller=Home}/{action=Landing}");
 

@@ -10,6 +10,7 @@ using PickMeUp.Core.Common.Models;
 using PickMeUp.Enums.UserPickUpRequest;
 using PickMeUp.Core.Services.UserPickUpRequest;
 using System;
+using System.Collections.Generic;
 using PickMeUp.Web.Extensions.Mappers;
 
 namespace PickMeUp.Web.Controllers;
@@ -280,22 +281,28 @@ public partial class TravelController : Controller
     }
          
     [HttpPost]
-    public virtual async Task<IActionResult> EditPickUpRequestStatus([FromForm] int travelId, [FromForm] int[] pickUpRequestIds, [FromForm] UserPickUpRequestStatus status)
+    public virtual async Task<IActionResult> EditPickUpRequestStatus([FromForm] int travelId, [FromForm] Dictionary<int, UserPickUpRequestStatus> decisions)
     {
         // Validate that at least one request is selected
-        if (pickUpRequestIds == null || pickUpRequestIds.Length == 0)
+        if (decisions == null || decisions.Count == 0)
         {
             AlertHelper.AddWarning(this, "Seleziona almeno una richiesta");
             return RedirectToAction(nameof(Travel), new { travelId });
         }
+
+        // Build list of status changes from dictionary
+        var statusChanges = decisions.Select(d => new PickUpRequestStatusChange
+        {
+            UserPickUpRequestId = d.Key,
+            Status = d.Value
+        }).ToList();
 
         var editPickUpRequestResult = await _userPickUpRequestService
             .EditUserPickUpRequestStatusBulkAsync(
                 new()
                 {
                     UserId = this.GetUserId(),
-                    UserPickUpRequestIds = [.. pickUpRequestIds],
-                    Status = status,
+                    StatusChanges = statusChanges,
                 });
 
         // Check error
@@ -305,8 +312,10 @@ public partial class TravelController : Controller
         }
         else
         {
-            var action = status == UserPickUpRequestStatus.Accepted ? "accettate" : "rifiutate";
-            AlertHelper.AddSuccess(this, $"{pickUpRequestIds.Length} richieste {action} con successo");
+            var acceptedCount = decisions.Count(d => d.Value == UserPickUpRequestStatus.Accepted);
+            var rejectedCount = decisions.Count(d => d.Value == UserPickUpRequestStatus.Rejected);
+            var message = $"{acceptedCount} richieste accettate, {rejectedCount} rifiutate";
+            AlertHelper.AddSuccess(this, message);
         }        
         
         return RedirectToAction(nameof(Travel), new { travelId });

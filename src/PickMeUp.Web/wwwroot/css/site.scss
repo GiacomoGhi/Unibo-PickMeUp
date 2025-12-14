@@ -1,10 +1,18 @@
 ﻿// Variables
 @import "../../node_modules/bootstrap/scss/functions";
 
-// Enable Bootstrap dark mode support and use the `data` strategy so
-// compiled CSS contains rules for `[data-bs-theme="dark"]`.
-$enable-dark-mode: true;
-$color-mode-type: data;
+// Dark mode disabled - enforcing light mode only
+$enable-dark-mode: false;
+
+// Custom color palette - Override Bootstrap colors
+$primary: #000000; // Full black (PRIMARIO)
+$secondary: #6c757d; // Gray (SECONDARIO)
+$success: #28a745; // Green (X NOTE)
+$warning: #ff8d28; // Orange (ALERT)
+$info: #17a2b8; // Cyan (INFO)
+$danger: #dc3545; // Red
+$light: #f8f9fa; // Light gray
+$dark: #212529; // Dark grayh
 
 // Import full Bootstrap (it will import variables/maps after our overrides)
 @import "../../node_modules/bootstrap/scss/bootstrap.scss";
@@ -24,10 +32,7 @@ body {
   color: var(--bs-body-color);
   margin: 0;
   padding: 0;
-}
-
-[data-bs-theme="light"] body {
-  background-color: #f5f1ed;
+  background-color: var($light);
 }
 
 // Password strength UI compatibility for legacy JS
@@ -145,14 +150,13 @@ body {
   & > div > div > div {
     min-width: 280px !important;
     min-height: 80px !important;
-    background-color: #cfa0e9 !important;
+    background-color: var($white);
     border-radius: 1rem !important;
     border: none !important;
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
     padding: 1rem 1.5rem !important;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
 
     span {
       font-size: 1.25rem !important;
@@ -161,73 +165,34 @@ body {
   }
 }
 
-.bg-pmu-secondary {
-  background-color: #cfa0e9 !important;
-}
-
-.bg-pmu-primary {
-  background-color: #17a2b8 !important;
-}
-
-.bg-pmu {
-  background-color: #000000 !important;
-}
-
-[data-bs-theme="light"] .bg-pmu {
-  background-color: #ffffff !important;
-}
-
-// Travel Timeline Modal Styles
-$pmu-timeline-bg-dark: #1a202c;
-$pmu-timeline-card-bg: #2d3748;
-$pmu-timeline-card-bg-hover: #3d4758;
-$pmu-timeline-card-start-bg: #1e3a2e;
-$pmu-timeline-card-end-bg: #3a1e1e;
-$pmu-timeline-pending-bg: #0d1117;
-$pmu-timeline-checkbox-bg: #1a202c;
+// Travel Timeline Modal Styles - Light Mode Only
+$pmu-timeline-bg: #f7fafc;
+$pmu-timeline-card-bg: #edf2f7;
+$pmu-timeline-card-bg-hover: #e2e8f0;
+$pmu-timeline-card-start-bg: #e6ffed;
+$pmu-timeline-card-end-bg: #ffe6e6;
+$pmu-timeline-pending-bg: #ffffff;
+$pmu-timeline-checkbox-bg: #ffffff;
 $pmu-timeline-checkbox-border: #cbd5e0;
-
-// Light mode variables
-$pmu-timeline-bg-light: #f7fafc;
-$pmu-timeline-card-bg-light: #edf2f7;
-$pmu-timeline-card-bg-hover-light: #e2e8f0;
-$pmu-timeline-card-start-bg-light: #e6ffed;
-$pmu-timeline-card-end-bg-light: #ffe6e6;
-$pmu-timeline-pending-bg-light: #ffffff;
-$pmu-timeline-checkbox-bg-light: #ffffff;
 
 // Modal body background
 .pmu-timeline-modal-body {
-  background-color: $pmu-timeline-bg-dark;
-  color: white;
-}
-
-[data-bs-theme="light"] .pmu-timeline-modal-body {
-  background-color: $pmu-timeline-bg-light;
+  background-color: $pmu-timeline-bg;
   color: var(--bs-body-color);
 }
 
 // Timeline text color
 .timeline-text {
-  color: white !important;
-}
-
-[data-bs-theme="light"] .timeline-text {
   color: var(--bs-body-color) !important;
 }
 
 // Pending requests container
 .pmu-pending-requests-container {
   background-color: $pmu-timeline-pending-bg;
-  color: white;
+  color: var(--bs-body-color);
   padding: 1.5rem;
   border-radius: 0.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-[data-bs-theme="light"] .pmu-pending-requests-container {
-  background-color: $pmu-timeline-pending-bg-light;
-  color: var(--bs-body-color);
   border: 1px solid #e2e8f0;
 }
 
@@ -238,7 +203,7 @@ $pmu-timeline-checkbox-bg-light: #ffffff;
 
 .timeline-line {
   position: absolute;
-  left: 27px;
+  left: 21px;
   top: 40px;
   bottom: 40px;
   width: 3px;
@@ -270,29 +235,30 @@ $pmu-timeline-checkbox-bg-light: #ffffff;
   z-index: 1;
 
   &.start {
-    background: linear-gradient(135deg, var(--bs-success) 0%, #20c997 100%);
+    background: var(--bs-success);
   }
 
   &.pickup {
-    background: linear-gradient(135deg, var(--bs-primary) 0%, #6610f2 100%);
+    background: var(--bs-primary);
   }
 
   &.end {
-    background: linear-gradient(135deg, var(--bs-danger) 0%, #fd7e14 100%);
+    background: var(--bs-danger);
   }
 }
 
 .timeline-card {
   background: $pmu-timeline-card-bg;
-  color: white;
+  color: var(--bs-body-color);
   border-radius: 12px;
   padding: 1rem 1.25rem;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
   border-left: 4px solid var(--bs-primary);
   transition: all 0.2s ease;
 
   &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: $pmu-timeline-card-bg-hover;
   }
 
   &.start {
@@ -303,37 +269,6 @@ $pmu-timeline-checkbox-bg-light: #ffffff;
   &.end {
     background: $pmu-timeline-card-end-bg;
     border-left-color: var(--bs-danger);
-  }
-
-  p {
-    color: white !important;
-  }
-
-  .text-dark {
-    color: white !important;
-  }
-
-  strong {
-    color: white !important;
-  }
-}
-
-[data-bs-theme="light"] .timeline-card {
-  background: $pmu-timeline-card-bg-light;
-  color: var(--bs-body-color);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-
-  &:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: $pmu-timeline-card-bg-hover-light;
-  }
-
-  &.start {
-    background: $pmu-timeline-card-start-bg-light;
-  }
-
-  &.end {
-    background: $pmu-timeline-card-end-bg-light;
   }
 
   p {
@@ -352,60 +287,25 @@ $pmu-timeline-checkbox-bg-light: #ffffff;
 .pending-request-card {
   cursor: pointer !important;
   transition: all 0.2s ease;
-  background: $pmu-timeline-card-bg !important;
-  color: white !important;
-
-  * {
-    cursor: pointer !important;
-    color: white !important;
-  }
-
-  &:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4) !important;
-    border: 2px solid var(--bs-warning) !important;
-    background: $pmu-timeline-card-bg-hover !important;
-  }
+  background: white !important;
+  color: var(--bs-body-color) !important;
+  border: 1px solid #e2e8f0 !important;
 
   .form-check-input {
     width: 1.5rem;
     height: 1.5rem;
     border: 2px solid $pmu-timeline-checkbox-border;
     cursor: pointer;
-    background-color: $pmu-timeline-checkbox-bg;
-
-    &:checked {
-      background-color: var(--bs-warning);
-      border-color: var(--bs-warning);
-    }
-
-    &:hover {
-      border-color: var(--bs-warning);
-    }
-  }
-}
-
-[data-bs-theme="light"] .pending-request-card {
-  background: white !important;
-  color: var(--bs-body-color) !important;
-  border: 1px solid #e2e8f0 !important;
-
-  * {
-    color: var(--bs-body-color) !important;
-  }
-
-  &:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
-    background: #f7fafc !important;
-  }
-
-  .form-check-input {
     background-color: white;
-    border-color: #cbd5e0;
-    cursor: pointer;
 
-    &:checked {
-      background-color: var(--bs-warning);
-      border-color: var(--bs-warning);
+    &.border-success:checked {
+      background-color: var(--bs-success);
+      border-color: var(--bs-success);
+    }
+
+    &.border-danger:checked {
+      background-color: var(--bs-danger);
+      border-color: var(--bs-danger);
     }
 
     &:hover {

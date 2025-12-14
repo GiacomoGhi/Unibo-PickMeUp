@@ -20,12 +20,23 @@ public class EditUserPickUpRequestStatusParams : ParamsBase
 public class EditUserPickUpRequestStatusBulkParams : ParamsBase
 {
     /// <summary>
-    /// Identifiers of the pick up requests.
+    /// List of pick up request status changes.
     /// </summary>
-    public List<int> UserPickUpRequestIds { get; set; } = [];
+    public List<PickUpRequestStatusChange> StatusChanges { get; set; } = [];
+}
+
+/// <summary>
+/// Represents a single pick up request status change.
+/// </summary>
+public class PickUpRequestStatusChange
+{
+    /// <summary>
+    /// Identifier of the pick up request.
+    /// </summary>
+    public int UserPickUpRequestId { get; set; }
 
     /// <summary>
-    /// Status of the pick up requests.
+    /// New status for the pick up request.
     /// </summary>
     public UserPickUpRequestStatus Status { get; set; }
 }

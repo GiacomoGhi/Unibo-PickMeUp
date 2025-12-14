@@ -14,8 +14,8 @@
         out var userId) ? userId : (int?)null;
 }
 
-<div class="container py-4">
-    <div class="d-flex flex-row justify-content-center mb-4">
+@section hero {
+    <div class="row">
         @if (Model.IsFromFindTravel)
         {
             <h1 class="display-4 fw-bold">Viaggi Disponibili</h1>
@@ -25,101 +25,92 @@
             <h1 class="display-4 fw-bold">I Tuoi Viaggi</h1>
         }
     </div>
-    <div class="row mb-4 align-items-center">
-        <div class="col-12 col-lg-8">
-            @if (!Model.IsFromFindTravel)
+}
+
+<div class="container py-4">
+    <div class="d-flex flex-row justify-content-center gap-4 mb-5">
+        @if (!Model.IsFromFindTravel)
+        {
+            @if(Model.TotalTravelsWithPendingPickUpRequestsCount > 0)
             {
-                <div class="row gap-5">
-                    @if(Model.TotalTravelsWithPendingPickUpRequestsCount > 0)
-                    {
-                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithPendingPickUpRequests = true })" class="btn btn-warning text-white col-3">
-                            Richieste in attesa: <b>@Model.TotalTravelsWithPendingPickUpRequestsCount</b>
-                        </a>
-                    }
-                    @if(Model.TotalTravelsAsDriver > 0)
-                    {
-                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Driver })" class="btn btn-warning text-white col-3">
-                            Viaggi dove sei Driver: <b>@Model.TotalTravelsAsDriver</b>
-                        </a>
-                    }
-                    @if(Model.TotalTravelsAsGuest > 0)
-                    {
-                        <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Guest })" class="btn btn-warning text-white col-3">
-                            Viaggi dove sei Guest: <b>@Model.TotalTravelsAsGuest</b>
-                        </a>
-                    }
-                </div>
-            }
-        </div>
-        <div class="mt-4 mt-lg-0 col-12 col-lg-4 d-flex justify-content-end">
-            <div class="row gap-5">
-                <button class="btn btn-primary text-white col-5" type="button" data-bs-toggle="collapse" data-bs-target="#filtersForm" aria-expanded="false" aria-controls="filtersForm">
-                    Ricerca avanzata
-                </button>
-                <a href="@Url.Action("List", "Travel", new { IsFromFindTravel = Model.IsFromFindTravel })" class="btn bg-pmu-secondary text-white col-5">
-                    Annulla filtri
+                <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithPendingPickUpRequests = true })" class="btn btn-primary text-white col-3">
+                    Richieste in attesa: <b>@Model.TotalTravelsWithPendingPickUpRequestsCount</b>
                 </a>
-            </div>
-        </div>
+            }
+            @if(Model.TotalTravelsAsDriver > 0)
+            {
+                <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Driver })" class="btn btn-primary text-white col-3">
+                    Viaggi dove sei Driver: <b>@Model.TotalTravelsAsDriver</b>
+                </a>
+            }
+            @if(Model.TotalTravelsAsGuest > 0)
+            {
+                <a href="@Url.Action("List", "Travel", new { ShowOnlyTravelsWithRole = UserTravelRole.Guest })" class="btn btn-primary text-white col-3">
+                    Viaggi dove sei Guest: <b>@Model.TotalTravelsAsGuest</b>
+                </a>
+            }
+        }
     </div>
-    <div id="searchApp" class="mb-5">     
-        <div class="collapse" id="filtersForm">
-            <div class="card card-body">
-                <form method="get" action="@Url.Action("List", "Travel")" ref="searchForm" v-on:submit.prevent="handleSearch">
-                    
-                    <input type="hidden" name="IsFromFindTravel" value="@Model.IsFromFindTravel.ToString().ToLower()" />
+    <div id="searchApp" class="mb-3">     
+        <div class="card card-body bg-light">
+            <form method="get" action="@Url.Action("List", "Travel")" ref="searchForm" v-on:submit.prevent="handleSearch">
+                
+                <input type="hidden" name="IsFromFindTravel" value="@Model.IsFromFindTravel.ToString().ToLower()" />
 
-                    <template v-if="state.departure">
-                        <input type="hidden" name="Departure.ReadableAddress" :value="state.departure.formattedAddress" />
-                        <input type="hidden" name="Departure.Coordinates.Latitude" :value="state.departure.coordinates.lat" />
-                        <input type="hidden" name="Departure.Coordinates.Longitude" :value="state.departure.coordinates.lng" />
-                        <input type="hidden" name="Departure.Street" :value="state.departure.addressComponents.route" />
-                        <input type="hidden" name="Departure.Number" :value="state.departure.addressComponents.street_number" />
-                        <input type="hidden" name="Departure.City" :value="state.departure.addressComponents.city" />
-                        <input type="hidden" name="Departure.PostalCode" :value="state.departure.addressComponents.postalCode" />
-                        <input type="hidden" name="Departure.Province" :value="state.departure.addressComponents.province" />
-                        <input type="hidden" name="Departure.Region" :value="state.departure.addressComponents.region" />
-                        <input type="hidden" name="Departure.Country" :value="state.departure.addressComponents.country" />
-                    </template>
+                <template v-if="state.departure">
+                    <input type="hidden" name="Departure.ReadableAddress" :value="state.departure.formattedAddress" />
+                    <input type="hidden" name="Departure.Coordinates.Latitude" :value="state.departure.coordinates.lat" />
+                    <input type="hidden" name="Departure.Coordinates.Longitude" :value="state.departure.coordinates.lng" />
+                    <input type="hidden" name="Departure.Street" :value="state.departure.addressComponents.route" />
+                    <input type="hidden" name="Departure.Number" :value="state.departure.addressComponents.street_number" />
+                    <input type="hidden" name="Departure.City" :value="state.departure.addressComponents.city" />
+                    <input type="hidden" name="Departure.PostalCode" :value="state.departure.addressComponents.postalCode" />
+                    <input type="hidden" name="Departure.Province" :value="state.departure.addressComponents.province" />
+                    <input type="hidden" name="Departure.Region" :value="state.departure.addressComponents.region" />
+                    <input type="hidden" name="Departure.Country" :value="state.departure.addressComponents.country" />
+                </template>
 
-                    <template v-if="state.destination">
-                        <input type="hidden" name="Destination.ReadableAddress" :value="state.destination.formattedAddress" />
-                        <input type="hidden" name="Destination.Coordinates.Latitude" :value="state.destination.coordinates.lat" />
-                        <input type="hidden" name="Destination.Coordinates.Longitude" :value="state.destination.coordinates.lng" />
-                        <input type="hidden" name="Destination.Street" :value="state.destination.addressComponents.route" />
-                        <input type="hidden" name="Destination.Number" :value="state.destination.addressComponents.street_number" />
-                        <input type="hidden" name="Destination.City" :value="state.destination.addressComponents.city" />
-                        <input type="hidden" name="Destination.PostalCode" :value="state.destination.addressComponents.postalCode" />
-                        <input type="hidden" name="Destination.Province" :value="state.destination.addressComponents.province" />
-                        <input type="hidden" name="Destination.Region" :value="state.destination.addressComponents.region" />
-                        <input type="hidden" name="Destination.Country" :value="state.destination.addressComponents.country" />
-                    </template>
+                <template v-if="state.destination">
+                    <input type="hidden" name="Destination.ReadableAddress" :value="state.destination.formattedAddress" />
+                    <input type="hidden" name="Destination.Coordinates.Latitude" :value="state.destination.coordinates.lat" />
+                    <input type="hidden" name="Destination.Coordinates.Longitude" :value="state.destination.coordinates.lng" />
+                    <input type="hidden" name="Destination.Street" :value="state.destination.addressComponents.route" />
+                    <input type="hidden" name="Destination.Number" :value="state.destination.addressComponents.street_number" />
+                    <input type="hidden" name="Destination.City" :value="state.destination.addressComponents.city" />
+                    <input type="hidden" name="Destination.PostalCode" :value="state.destination.addressComponents.postalCode" />
+                    <input type="hidden" name="Destination.Province" :value="state.destination.addressComponents.province" />
+                    <input type="hidden" name="Destination.Region" :value="state.destination.addressComponents.region" />
+                    <input type="hidden" name="Destination.Country" :value="state.destination.addressComponents.country" />
+                </template>
 
-                    <div class="row g-3">
-                        <div class="col-lg-10">
-                            <div class="row justify-content-between align-items-end">
-                                <div class="col-lg-4">
-                                    <label class="form-label small fw-bold">Partenza</label>
-                                    <div id="departure-container"></div>
-                                </div>
-                                <div class="col-lg-4">
-                                    <label class="form-label small fw-bold">Arrivo</label>
-                                    <div id="destination-container"></div>
-                                </div>
-                                <div class="col-lg-3">
-                                    <label for="departureDate" class="form-label small fw-bold">Data</label>
-                                    <input class="form-control" type="date" name="DepartureDate" id="departureDate" v-model="state.departureDate" placeholder="GG/MM/YYYY" value="@Model.Filters.DepartureDate?.ToString("yyyy-MM-dd")" />
-                                </div>
+                <div class="row g-3">
+                    <div class="col-lg-10">
+                        <div class="row justify-content-start align-items-end">
+                            <div class="col-lg-4">
+                                <label class="form-label small fw-bold">Partenza</label>
+                                <div id="departure-container"></div>
+                            </div>
+                            <div class="col-lg-4">
+                                <label class="form-label small fw-bold">Arrivo</label>
+                                <div id="destination-container"></div>
+                            </div>
+                            <div class="col-lg-3">
+                                <label for="departureDate" class="form-label small fw-bold">Data</label>
+                                <input class="form-control" type="date" name="DepartureDate" id="departureDate" v-model="state.departureDate" placeholder="GG/MM/YYYY" value="@Model.Filters.DepartureDate?.ToString("yyyy-MM-dd")" />
                             </div>
                         </div>
-                        <div class="col-lg-2 d-flex align-items-end ps-lg-5">
-                            <button type="submit" class="btn btn-primary w-100">
-                                Trova
-                            </button>
-                        </div>
                     </div>
-                </form>
-            </div>
+                    <div class="col-lg-2 d-flex flex-column justify-content-end">
+                        <button type="submit" class="btn btn-info text-white w-100 mb-2">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span class="ms-2">Trova</span>
+                        </button>
+                        <a href="@Url.Action("List", "Travel", new { IsFromFindTravel = Model.IsFromFindTravel })" class="btn btn-outline-secondary">
+                            Annulla Filtri
+                        </a>
+                    </div>
+                </div>
+            </form>
         </div>     
     </div>
 
@@ -130,26 +121,22 @@
                  <div class="text-center py-5 text-muted">
                      <h3>😔 Nessun viaggio trovato</h3>
                      <p>Prova a cercare una città più grande o rimuovi alcuni filtri.</p>
-                     <a href="@Url.Action("List", "Travel")" class="btn btn-outline-secondary mt-2">Reset Filtri</a>
+                     <a href="@Url.Action("List", "Travel")" class="btn btn-outline-secondary mt-2">Annulla Filtri</a>
                  </div>
              }
              else
              {
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h1 class="h4">Viaggi disponibili (@Model.Travels.Length)</h1>
-                </div>
-
-                <div class="list-group shadow-sm">
+                <div class="list-group shadow-sm p-3 bg-light">
                     @foreach(var travel in Model.Travels)
                     {
-                        <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action p-4 mb-2 border rounded bg-pmu " aria-current="true">
+                        <a href="@Url.Action("Travel", "Travel", new { travelId = travel.UserTravelId })" class="list-group-item list-group-item-action p-4 mb-2 border rounded" aria-current="true">
                             <div class="d-flex w-100 justify-content-between mb-2">
                                 <h5 class="mb-1 text-primary">
                                     <i class="bi bi-geo-alt"></i> @travel.DepartureAddress 
                                     <i class="bi bi-arrow-right mx-2  opacity-75"></i> 
                                     <i class="bi bi-geo-alt-fill"></i> @travel.DestinationAddress
                                 </h5>
-                                <small class=" opacity-75">@travel.DepartureDateTime.ToString("dd MMM yyyy, HH:mm")</small>
+                                <small class="opacity-75">@travel.DepartureDateTime.ToString("dd MMM yyyy, HH:mm")</small>
                             </div>
                             <div class="d-flex justify-content-between align-items-end">
                                 <div>
@@ -165,12 +152,11 @@
                                     }
                                     else if (travel.PendingPickUpRequestUserIds.Length > 0)
                                     {
-                                        <span class="badge bg-pmu-primary text-dark rounded-pill">
+                                        <span class="badge bg-warning text-white rounded-pill">
                                             @travel.PendingPickUpRequestUserIds.Length richieste in attesa
                                         </span>
                                     }
                                 </div>
-                                <small class=" opacity-75">Clicca per dettagli</small>
                             </div>
                         </a>
                     }
